@@ -13,20 +13,20 @@
 #include "vector"
 #include "string"
 
-int main()
-{
+int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Window");
     window.setVerticalSyncEnabled(true);
+    
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGUI Init\n");
     ImGui::GetIO().IniFilename = nullptr;
     ImPlot::CreateContext();
+    sf::Clock deltaClock;
 
     sf::CircleShape circle;
     float circleRadius = 50.0f;
 
-    sf::Clock deltaClock;
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             ImGui::SFML::ProcessEvent(window, *event);
@@ -56,8 +56,11 @@ int main()
 
         int windowHeight = (bigGUI) ? 450 : 250;
         if (ImPlot::BeginPlot("Test Plot", ImVec2(-1, windowHeight), ImPlotFlags_NoInputs)) {
-            static std::vector<float> randomData;
-            randomData.push_back((float)rand() / (float)RAND_MAX);
+            static std::vector<float> randomData{ 0.5f };
+            float data = randomData[randomData.size() - 1] + (((float)rand() / (float)RAND_MAX) * 0.2f) - 0.1f;
+            data = fmax(0.0f, data);
+            data = fmin(1.0f, data);
+            randomData.push_back(data);
             if (randomData.size() > 99)
                 randomData.erase(randomData.begin());
             ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)randomData.size(), ImGuiCond_Always);
