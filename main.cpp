@@ -13,6 +13,33 @@
 #include "vector"
 #include "string"
 
+class Perlin {
+public:
+    static void DrawArrow(sf::RenderWindow& window, sf::Vector2f& position, sf::Vector2f& direction, float scale = 20.0f) {
+        float theta = SmartArcTan(direction);
+        std::cout << theta << "\n";
+        std::vector<sf::Vertex> vertices;
+        vertices.push_back(sf::Vertex{ position });
+        vertices.push_back(sf::Vertex{ position + direction });
+        vertices.push_back(sf::Vertex{ position + direction });
+        vertices.push_back(sf::Vertex{ position + direction + sf::Vector2f(scale * cos(theta + 2.8f), scale * sin(theta + 2.8f))});
+        vertices.push_back(sf::Vertex{ position + direction });
+        vertices.push_back(sf::Vertex{ position + direction + sf::Vector2f(scale * cos(theta - 2.8f), scale * sin(theta - 2.8f)) });
+        window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::Lines);
+    }
+
+    static float SmartArcTan(sf::Vector2f direction) {
+        const float PI = 3.1415927f;
+        if ((direction.x > 0.0f) && (direction.y > 0.0f))
+            return atan(direction.y / direction.x);
+        if ((direction.x > 0.0f) && (direction.y < 0.0f))
+            return (2 * PI) + atan(direction.y / direction.x);
+        if ((direction.x < 0.0f))
+            return PI + atan(direction.y / direction.x);
+        return atan(direction.y / direction.x);
+    }
+};
+
 int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Window");
@@ -45,16 +72,15 @@ int main() {
         sf::Vector2f position = sf::Vector2f(window.getSize().x, window.getSize().y);
         circle.setPosition(sf::Vector2f(position.x * 0.5f - circle.getRadius(), position.y * 0.5f - circle.getRadius()));
         window.draw(circle);
+
         ImGui::Begin("Gabby's Window");
         ImGui::Text("Yippie! :3");
         ImGui::SliderFloat("Circle Radius", &circleRadius, 10.0f, 250.0f);
-
         static bool bigGUI = true;
         if (ImGui::Button("Toggle GUI Size")) {
             bigGUI = !bigGUI;
             ImGui::GetIO().FontGlobalScale = (bigGUI) ? 2.0f : 1.0f;
         }
-
         int windowHeight = (bigGUI) ? 500 : 250;
         if (ImPlot::BeginPlot("Test Plot", ImVec2(-1, windowHeight), ImPlotFlags_NoInputs)) {
             static std::vector<float> randomData{ 0.5f };
@@ -69,8 +95,13 @@ int main() {
             ImPlot::PlotLine("Random Data", &randomData[0], randomData.size());
             ImPlot::EndPlot();
         }
-
         ImGui::End();
+
+        static float theta = 0.0f;
+        theta += 0.01f;
+        Perlin::DrawArrow(window, sf::Vector2f(500.0f, 500.0f), sf::Vector2f(250.0f * cos(theta), 250.0f * sin(theta)));
+
+
         ImGui::SFML::Render(window);
         window.display();
     }
