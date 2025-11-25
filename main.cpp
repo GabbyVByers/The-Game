@@ -21,6 +21,7 @@ int main() {
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGUI Init\n");
     ImGui::GetIO().IniFilename = nullptr;
+    ImGui::GetIO().FontGlobalScale = 2.0f;
     ImPlot::CreateContext();
     sf::Clock deltaClock;
 
@@ -48,13 +49,13 @@ int main() {
         ImGui::Text("Yippie! :3");
         ImGui::SliderFloat("Circle Radius", &circleRadius, 10.0f, 250.0f);
 
-        static bool bigGUI = false;
+        static bool bigGUI = true;
         if (ImGui::Button("Toggle GUI Size")) {
             bigGUI = !bigGUI;
             ImGui::GetIO().FontGlobalScale = (bigGUI) ? 2.0f : 1.0f;
         }
 
-        int windowHeight = (bigGUI) ? 450 : 250;
+        int windowHeight = (bigGUI) ? 500 : 250;
         if (ImPlot::BeginPlot("Test Plot", ImVec2(-1, windowHeight), ImPlotFlags_NoInputs)) {
             static std::vector<float> randomData{ 0.5f };
             float data = randomData[randomData.size() - 1] + (((float)rand() / (float)RAND_MAX) * 0.2f) - 0.1f;
