@@ -9,15 +9,51 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
 
+#include "cassert"
 #include "iostream"
 #include "vector"
 #include "string"
 
 class Perlin {
 public:
+    sf::Image    noiseImage;
+    unsigned int width;
+    unsigned int octaves;
+    float        epsilon;
+
+    Perlin(unsigned int width, unsigned int octaves) {
+        this->width   = width;
+        this->octaves = octaves;
+        noiseImage.resize({width, width});
+        epsilon = 1.0f / (float)(octaves + 1);
+        generateNoise();
+    }
+
+    struct Arrow {
+        sf::Vector2f position;
+        sf::Vector2f direction;
+    };
+    std::vector<Arrow> arrows;
+
+    void generateNoise() {
+        for (int i = 0; i < (octaves + 2); i++) {
+            for (int j = 0; j < (octaves + 2); j++) {
+                Arrow arrow;
+                arrow.position  = sf::Vector2f(i * epsilon * 1000, j * epsilon * 1000);
+                arrow.direction = RandomDirection();
+                arrows.push_back(arrow);
+            }
+        }
+    }
+
+    void drawNoise(sf::RenderWindow& window) {
+        for (Arrow& arrow : arrows) {
+            DrawArrow(window, arrow.position, arrow.direction);
+        }
+    }
+
     static void DrawArrow(sf::RenderWindow& window, sf::Vector2f& position, sf::Vector2f& direction, float scale = 20.0f) {
         float theta = SmartArcTan(direction);
-        std::cout << theta << "\n";
         std::vector<sf::Vertex> vertices;
         vertices.push_back(sf::Vertex{ position });
         vertices.push_back(sf::Vertex{ position + direction });
@@ -30,13 +66,23 @@ public:
 
     static float SmartArcTan(sf::Vector2f direction) {
         const float PI = 3.1415927f;
-        if ((direction.x > 0.0f) && (direction.y > 0.0f))
+        if ((direction.x >= 0.0f) && (direction.y >= 0.0f))
             return atan(direction.y / direction.x);
-        if ((direction.x > 0.0f) && (direction.y < 0.0f))
+        if ((direction.x >= 0.0f) && (direction.y <= 0.0f))
             return (2 * PI) + atan(direction.y / direction.x);
-        if ((direction.x < 0.0f))
+        if ((direction.x <= 0.0f))
             return PI + atan(direction.y / direction.x);
-        return atan(direction.y / direction.x);
+    }
+
+    static sf::Vector2f RandomDirection() {
+        while (true) {
+            float x = ((float)rand() / ((float)RAND_MAX * 0.5f)) - 1.0f;
+            float y = ((float)rand() / ((float)RAND_MAX * 0.5f)) - 1.0f;
+            float dist = (x * x) + (y * y);
+            if (dist < 1.0f) {
+                return sf::Vector2f(x, y);
+            }
+        }
     }
 };
 
@@ -46,14 +92,13 @@ int main() {
     window.setVerticalSyncEnabled(true);
     
     if (!ImGui::SFML::Init(window))
-        assert(false && "Bad ImGUI Init\n");
+        assert(false && "Bad ImGui Init");
     ImGui::GetIO().IniFilename = nullptr;
     ImGui::GetIO().FontGlobalScale = 2.0f;
     ImPlot::CreateContext();
     sf::Clock deltaClock;
 
-    sf::CircleShape circle;
-    float circleRadius = 50.0f;
+    Perlin perlinLayer(500, 20);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -68,39 +113,18 @@ int main() {
 
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
-        circle.setRadius(circleRadius);
-        sf::Vector2f position = sf::Vector2f(window.getSize().x, window.getSize().y);
-        circle.setPosition(sf::Vector2f(position.x * 0.5f - circle.getRadius(), position.y * 0.5f - circle.getRadius()));
-        window.draw(circle);
-
         ImGui::Begin("Gabby's Window");
-        ImGui::Text("Yippie! :3");
-        ImGui::SliderFloat("Circle Radius", &circleRadius, 10.0f, 250.0f);
         static bool bigGUI = true;
         if (ImGui::Button("Toggle GUI Size")) {
             bigGUI = !bigGUI;
             ImGui::GetIO().FontGlobalScale = (bigGUI) ? 2.0f : 1.0f;
         }
-        int windowHeight = (bigGUI) ? 500 : 250;
-        if (ImPlot::BeginPlot("Test Plot", ImVec2(-1, windowHeight), ImPlotFlags_NoInputs)) {
-            static std::vector<float> randomData{ 0.5f };
-            float data = randomData[randomData.size() - 1] + (((float)rand() / (float)RAND_MAX) * 0.2f) - 0.1f;
-            data = fmax(0.0f, data);
-            data = fmin(1.0f, data);
-            randomData.push_back(data);
-            if (randomData.size() > 99)
-                randomData.erase(randomData.begin());
-            ImPlot::SetupAxisLimits(ImAxis_X1, 0.0, (double)randomData.size(), ImGuiCond_Always);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, 0.0, 1.0, ImGuiCond_Always);
-            ImPlot::PlotLine("Random Data", &randomData[0], randomData.size());
-            ImPlot::EndPlot();
-        }
         ImGui::End();
 
-        static float theta = 0.0f;
-        theta += 0.01f;
-        Perlin::DrawArrow(window, sf::Vector2f(500.0f, 500.0f), sf::Vector2f(250.0f * cos(theta), 250.0f * sin(theta)));
-
+        perlinLayer.drawNoise(window);
+        //static float theta = 0.0f;
+        //theta += 0.01f;
+        //Perlin::DrawArrow(window, sf::Vector2f(500.0f, 500.0f), sf::Vector2f(250.0f * cos(theta), 250.0f * sin(theta)));
 
         ImGui::SFML::Render(window);
         window.display();
