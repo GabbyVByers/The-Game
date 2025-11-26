@@ -51,49 +51,84 @@ public:
                 Arrow arrow;
                 arrow.position  = sf::Vector2f(i * epsilon, j * epsilon);
                 arrow.direction = RandomNormalDirection();
-                arrow.direction.x *= epsilon;
-                arrow.direction.y *= epsilon;
                 arrows[i][j] = arrow;
             }
         }
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
-                float u = ((float)i / (float)width) + (0.5f / (float)width);
-                float v = ((float)j / (float)width) + (0.5f / (float)width);
-                sf::Vector2f uvPos = sf::Vector2f(u, v);
+                //float u = ((float)i / (float)width) + (0.5f / (float)width);
+                //float v = ((float)j / (float)width) + (0.5f / (float)width);
+                //sf::Vector2f uvPos = sf::Vector2f(u, v);
+                //
+                //int arrow_i = (unsigned int)(uvPos.x / epsilon);
+                //int arrow_j = (unsigned int)(uvPos.y / epsilon);
+                //
+                //sf::Vector2f repPosA = sf::Vector2f( arrow_i      * epsilon,  arrow_j      * epsilon);
+                //sf::Vector2f repPosB = sf::Vector2f((arrow_i + 1) * epsilon,  arrow_j      * epsilon);
+                //sf::Vector2f repPosC = sf::Vector2f((arrow_i + 1) * epsilon, (arrow_j + 1) * epsilon);
+                //sf::Vector2f repPosD = sf::Vector2f( arrow_i      * epsilon, (arrow_j + 1) * epsilon);
+                //
+                //sf::Vector2f locPosA = (uvPos - repPosA);
+                //sf::Vector2f locPosB = (uvPos - repPosB);
+                //sf::Vector2f locPosC = (uvPos - repPosC);
+                //sf::Vector2f locPosD = (uvPos - repPosD);
+                //
+                //float dotA = (locPosA.x * arrows[arrow_i    ][arrow_j    ].direction.x) + (locPosA.y * arrows[arrow_i    ][arrow_j    ].direction.y);
+                //float dotB = (locPosB.x * arrows[arrow_i + 1][arrow_j    ].direction.x) + (locPosB.y * arrows[arrow_i + 1][arrow_j    ].direction.y);
+                //float dotC = (locPosC.x * arrows[arrow_i + 1][arrow_j + 1].direction.x) + (locPosC.y * arrows[arrow_i + 1][arrow_j + 1].direction.y);
+                //float dotD = (locPosD.x * arrows[arrow_i    ][arrow_j + 1].direction.x) + (locPosD.y * arrows[arrow_i    ][arrow_j + 1].direction.y);
+                //
+                //float horizFrac = ((uvPos.x - repPosA.x) / epsilon);
+                //float vertFrac  = ((uvPos.y - repPosA.y) / epsilon);
+                //float dotAB = (dotA * horizFrac) + (dotB * (1.0f - horizFrac));
+                //float dotDC = (dotD * horizFrac) + (dotC * (1.0f - horizFrac));
+                //float dotABDC = (dotAB * vertFrac) + (dotDC * (1.0f - vertFrac));
+                //
+                //float weight = (dotABDC + 1.0f) * 0.5f;
+                //weight = fmax(0.0f, weight);
+                //weight = fmin(1.0f, weight);
+                //noiseImage.setPixel(sf::Vector2u(i, j), sf::Color(255 * weight, 255 * weight, 255 * weight));
 
-                int arrow_i = (unsigned int)(uvPos.x / epsilon);
-                int arrow_j = (unsigned int)(uvPos.y / epsilon);
+                sf::Vector2f worldPos = sf::Vector2f(((float)i / width) + (0.5f / width), ((float)j / width) + (0.5f / width));
+                unsigned int refIndex_i = (unsigned int)(worldPos.x / epsilon);
+                unsigned int refIndex_j = (unsigned int)(worldPos.y / epsilon);
 
-                sf::Vector2f repPosA = sf::Vector2f( arrow_i      * epsilon,  arrow_j      * epsilon);
-                sf::Vector2f repPosB = sf::Vector2f((arrow_i + 1) * epsilon,  arrow_j      * epsilon);
-                sf::Vector2f repPosC = sf::Vector2f((arrow_i + 1) * epsilon, (arrow_j + 1) * epsilon);
-                sf::Vector2f repPosD = sf::Vector2f( arrow_i      * epsilon, (arrow_j + 1) * epsilon);
+                sf::Vector2f gradientA = arrows[refIndex_i    ][refIndex_j    ].direction;
+                sf::Vector2f gradientB = arrows[refIndex_i + 1][refIndex_j    ].direction;
+                sf::Vector2f gradientC = arrows[refIndex_i + 1][refIndex_j + 1].direction;
+                sf::Vector2f gradientD = arrows[refIndex_i    ][refIndex_j + 1].direction;
 
-                sf::Vector2f locPosA = (uvPos - repPosA);
-                sf::Vector2f locPosB = (uvPos - repPosB);
-                sf::Vector2f locPosC = (uvPos - repPosC);
-                sf::Vector2f locPosD = (uvPos - repPosD);
+                sf::Vector2f anchorA = arrows[refIndex_i    ][refIndex_j    ].position;
+                sf::Vector2f anchorB = arrows[refIndex_i + 1][refIndex_j    ].position;
+                sf::Vector2f anchorC = arrows[refIndex_i + 1][refIndex_j + 1].position;
+                sf::Vector2f anchorD = arrows[refIndex_i    ][refIndex_j + 1].position;
 
-                float dotA = (locPosA.x * arrows[arrow_i    ][arrow_j    ].direction.x) + (locPosA.y * arrows[arrow_i    ][arrow_j    ].direction.y);
-                float dotB = (locPosB.x * arrows[arrow_i + 1][arrow_j    ].direction.x) + (locPosB.y * arrows[arrow_i + 1][arrow_j    ].direction.y);
-                float dotC = (locPosC.x * arrows[arrow_i + 1][arrow_j + 1].direction.x) + (locPosC.y * arrows[arrow_i + 1][arrow_j + 1].direction.y);
-                float dotD = (locPosD.x * arrows[arrow_i    ][arrow_j + 1].direction.x) + (locPosD.y * arrows[arrow_i    ][arrow_j + 1].direction.y);
+                sf::Vector2f localPosA = (worldPos - anchorA);
+                sf::Vector2f localPosB = (worldPos - anchorB);
+                sf::Vector2f localPosC = (worldPos - anchorC);
+                sf::Vector2f localPosD = (worldPos - anchorD);
 
-                float horizFrac = ((uvPos.x - repPosA.x) / epsilon);
-                float vertFrac  = ((uvPos.y - repPosA.y) / epsilon);
-                float dotAB = (dotA * horizFrac) + (dotB * (1.0f - horizFrac));
-                float dotDC = (dotD * horizFrac) + (dotC * (1.0f - horizFrac));
-                float dotABDC = (dotAB * vertFrac) + (dotDC * (1.0f - vertFrac));
+                float dotA = dot(localPosA / epsilon, gradientA);
+                float dotB = dot(localPosB / epsilon, gradientB);
+                float dotC = dot(localPosC / epsilon, gradientC);
+                float dotD = dot(localPosD / epsilon, gradientD);
+                
+                float weightLeftRight = localPosA.x / epsilon;
+                float weightUpDown    = localPosA.y / epsilon;
+                float lerpAB = (dotA * (1.0f - weightLeftRight)) + (dotB * weightLeftRight);
+                float lerpDC = (dotD * (1.0f - weightLeftRight)) + (dotC * weightLeftRight);
+                float lerpABDC = (lerpAB * (1.0f - weightUpDown)) + (lerpDC * weightUpDown);
 
-                float weight = (dotABDC + 1.0f) * 0.5f;
+                float weight = (lerpABDC + 1.0f) * 0.5f;
                 weight = fmax(0.0f, weight);
                 weight = fmin(1.0f, weight);
                 noiseImage.setPixel(sf::Vector2u(i, j), sf::Color(255 * weight, 255 * weight, 255 * weight));
             }
         }
     }
+
+    
 
     void debugViewNoise(sf::RenderWindow& window) {
         float offset = 150.0f;
@@ -114,10 +149,8 @@ public:
 
         for (auto& row : arrows) {
             for (Arrow& arrow : row) {
-                sf::Vector2f origin = sf::Vector2f(offset, offset);
-                origin.x += arrow.position.x * (float)width;
-                origin.y += arrow.position.y * (float)width;
-                sf::Vector2f dir = arrow.direction * (float)(width);
+                sf::Vector2f origin = sf::Vector2f(offset, offset) + arrow.position * (float)width;
+                sf::Vector2f dir = arrow.direction * (float)(width) * epsilon;
                 DrawArrow(window, origin, dir);
             }
         }
@@ -158,6 +191,10 @@ public:
                 return sf::Vector2f(x, y);
             }
         }
+    }
+
+    static float dot(const sf::Vector2f& A, const sf::Vector2f& B) {
+        return (A.x * B.x) + (A.y * B.y);
     }
 };
 
