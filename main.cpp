@@ -57,39 +57,6 @@ public:
 
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < width; j++) {
-                //float u = ((float)i / (float)width) + (0.5f / (float)width);
-                //float v = ((float)j / (float)width) + (0.5f / (float)width);
-                //sf::Vector2f uvPos = sf::Vector2f(u, v);
-                //
-                //int arrow_i = (unsigned int)(uvPos.x / epsilon);
-                //int arrow_j = (unsigned int)(uvPos.y / epsilon);
-                //
-                //sf::Vector2f repPosA = sf::Vector2f( arrow_i      * epsilon,  arrow_j      * epsilon);
-                //sf::Vector2f repPosB = sf::Vector2f((arrow_i + 1) * epsilon,  arrow_j      * epsilon);
-                //sf::Vector2f repPosC = sf::Vector2f((arrow_i + 1) * epsilon, (arrow_j + 1) * epsilon);
-                //sf::Vector2f repPosD = sf::Vector2f( arrow_i      * epsilon, (arrow_j + 1) * epsilon);
-                //
-                //sf::Vector2f locPosA = (uvPos - repPosA);
-                //sf::Vector2f locPosB = (uvPos - repPosB);
-                //sf::Vector2f locPosC = (uvPos - repPosC);
-                //sf::Vector2f locPosD = (uvPos - repPosD);
-                //
-                //float dotA = (locPosA.x * arrows[arrow_i    ][arrow_j    ].direction.x) + (locPosA.y * arrows[arrow_i    ][arrow_j    ].direction.y);
-                //float dotB = (locPosB.x * arrows[arrow_i + 1][arrow_j    ].direction.x) + (locPosB.y * arrows[arrow_i + 1][arrow_j    ].direction.y);
-                //float dotC = (locPosC.x * arrows[arrow_i + 1][arrow_j + 1].direction.x) + (locPosC.y * arrows[arrow_i + 1][arrow_j + 1].direction.y);
-                //float dotD = (locPosD.x * arrows[arrow_i    ][arrow_j + 1].direction.x) + (locPosD.y * arrows[arrow_i    ][arrow_j + 1].direction.y);
-                //
-                //float horizFrac = ((uvPos.x - repPosA.x) / epsilon);
-                //float vertFrac  = ((uvPos.y - repPosA.y) / epsilon);
-                //float dotAB = (dotA * horizFrac) + (dotB * (1.0f - horizFrac));
-                //float dotDC = (dotD * horizFrac) + (dotC * (1.0f - horizFrac));
-                //float dotABDC = (dotAB * vertFrac) + (dotDC * (1.0f - vertFrac));
-                //
-                //float weight = (dotABDC + 1.0f) * 0.5f;
-                //weight = fmax(0.0f, weight);
-                //weight = fmin(1.0f, weight);
-                //noiseImage.setPixel(sf::Vector2u(i, j), sf::Color(255 * weight, 255 * weight, 255 * weight));
-
                 sf::Vector2f worldPos = sf::Vector2f(((float)i / width) + (0.5f / width), ((float)j / width) + (0.5f / width));
                 unsigned int refIndex_i = (unsigned int)(worldPos.x / epsilon);
                 unsigned int refIndex_j = (unsigned int)(worldPos.y / epsilon);
@@ -116,6 +83,8 @@ public:
                 
                 float weightLeftRight = localPosA.x / epsilon;
                 float weightUpDown    = localPosA.y / epsilon;
+                weightLeftRight = (-cos(3.141593f * weightLeftRight) / 2.0f) + 0.5f;
+                weightUpDown = (-cos(3.141593f * weightUpDown) / 2.0f) + 0.5f;
                 float lerpAB = (dotA * (1.0f - weightLeftRight)) + (dotB * weightLeftRight);
                 float lerpDC = (dotD * (1.0f - weightLeftRight)) + (dotC * weightLeftRight);
                 float lerpABDC = (lerpAB * (1.0f - weightUpDown)) + (lerpDC * weightUpDown);
