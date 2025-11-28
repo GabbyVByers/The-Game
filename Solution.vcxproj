@@ -19,6 +19,8 @@
     <ClCompile Include="imgui\implot.cpp" />
     <ClCompile Include="imgui\implot_items.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PerlinNoise_public.cpp" />
+    <ClCompile Include="PerlinNoise_private.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig-SFML.h" />
@@ -32,6 +34,7 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="PerlinNoise.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5F414ED9-F7E2-5603-601B-684BD6E6BA1A}</ProjectGuid>
