@@ -25,7 +25,7 @@ public:
 private:
 	struct State {
 		std::vector<std::vector<float>> noiseValueArray;
-		unsigned int width;
+		unsigned int width = 0;
 	};
 	static State& GetState() {
 		static State state;

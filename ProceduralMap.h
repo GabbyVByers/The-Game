@@ -29,6 +29,14 @@ public:
 		for (int i = 0; i < s.width; i++) {
 			for (int j = 0; j < s.width; j++) {
 				sf::Color taperedColor = basePerlinNoise.getPixel(sf::Vector2u(i, j));
+				float halfWidth = (float)s.width / 2.0f;
+				float dist = sqrt((((float)i - halfWidth) * ((float)i - halfWidth)) + (((float)j - halfWidth) * ((float)j - halfWidth)));
+				dist = (halfWidth - dist) / halfWidth;
+				dist = fmax(0.0f, dist);
+				dist = fmin(1.0f, dist);
+				taperedColor.r *= dist;
+				taperedColor.g *= dist;
+				taperedColor.b *= dist;
 				boundaryTaperedPerlinNoise.setPixel(sf::Vector2u(i, j), taperedColor);
 			}
 		}
