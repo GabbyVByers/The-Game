@@ -22,6 +22,9 @@
     <Filter Include="Personal Libraries\PerlinNoise">
       <UniqueIdentifier>{bd97051a-5960-4546-8584-2506b07215cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Personal Libraries\ProceduralMap">
+      <UniqueIdentifier>{a75f2570-8ba6-4bc7-8ee0-46f23088e356}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="PerlinNoise.h">
       <Filter>Personal Libraries\PerlinNoise</Filter>
+    </ClInclude>
+    <ClInclude Include="ProceduralMap.h">
+      <Filter>Personal Libraries\ProceduralMap</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
