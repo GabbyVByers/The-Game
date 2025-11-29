@@ -26,6 +26,7 @@ class PerlinNoise {
 public:
 	static void Initialize(unsigned int imageWidth, unsigned int providedSeed = 1);
 	static void AddLayer(unsigned int octaves, float weight = 1.0f);
+	static void AddBoundedLayer(unsigned int octaves, float weight = 1.0f);
 	static sf::Image GetSFMLImage();
 	static void DebugDisplay(sf::RenderWindow& window, sf::Vector2f position = sf::Vector2f());
 private:
