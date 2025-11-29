@@ -29,7 +29,7 @@ int main() {
     ImPlot::CreateContext();
     sf::Clock deltaClock;
 
-    ProceduralMap::GenerateWorldMap();
+    
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -45,6 +45,7 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
+        ProceduralMap::GenerateWorldMap();
         ProceduralMap::DisplayWorldMap(window);
 
         ImGui::SFML::Render(window);

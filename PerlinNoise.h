@@ -20,6 +20,7 @@ public:
 	static void Initialize(unsigned int imageWidth, unsigned int providedSeed = 1);
 	static void AddLayer(unsigned int octaves, float weight = 1.0f);
 	static sf::Image GetSFMLImage();
+	static std::vector<std::vector<float>> Get2DFloatArray();
 	static void DebugDisplay(sf::RenderWindow& window, sf::Vector2f position = sf::Vector2f());
 
 private:

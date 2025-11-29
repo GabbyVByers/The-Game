@@ -103,6 +103,11 @@ sf::Image PerlinNoise::GetSFMLImage() {
 	return noiseImage;
 }
 
+std::vector<std::vector<float>> PerlinNoise::Get2DFloatArray() {
+	State& s = GetState();
+	return s.noiseValueArray;
+}
+
 void PerlinNoise::DebugDisplay(sf::RenderWindow& window, sf::Vector2f position) {
 	sf::Image noiseImage = GetSFMLImage();
 	sf::Texture texture(noiseImage);

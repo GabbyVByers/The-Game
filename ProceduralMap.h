@@ -16,6 +16,7 @@ class ProceduralMap {
 public:
 	static void GenerateWorldMap() {
 		State& s = GetState();
+		s.worldLayerProgression.clear();
 
 		// Base Perlin Noise
 		PerlinNoise::Initialize(s.width);
@@ -26,22 +27,37 @@ public:
 		// Boundary Tapering
 		sf::Image boundaryTaperedPerlinNoise;
 		boundaryTaperedPerlinNoise.resize({ s.width, s.width });
+		std::vector<std::vector<float>> perlinFloatArray = PerlinNoise::Get2DFloatArray();
 		for (int i = 0; i < s.width; i++) {
 			for (int j = 0; j < s.width; j++) {
-				sf::Color taperedColor = basePerlinNoise.getPixel(sf::Vector2u(i, j));
+				float weight = perlinFloatArray[i][j];
 				float halfWidth = (float)s.width / 2.0f;
 				float dist = sqrt((((float)i - halfWidth) * ((float)i - halfWidth)) + (((float)j - halfWidth) * ((float)j - halfWidth)));
 				dist = (halfWidth - dist) / halfWidth;
 				dist = fmax(0.0f, dist);
 				dist = fmin(1.0f, dist);
-				taperedColor.r *= dist;
-				taperedColor.g *= dist;
-				taperedColor.b *= dist;
+				weight *= dist;
+				sf::Color taperedColor = sf::Color(255 * weight, 255 * weight, 255 * weight);
 				boundaryTaperedPerlinNoise.setPixel(sf::Vector2u(i, j), taperedColor);
 			}
 		}
 		s.worldLayerProgression.push_back(boundaryTaperedPerlinNoise);
 
+		// And on the 67th day there was Water and Land
+		sf::Image waterLandSeparationLayer;
+		waterLandSeparationLayer.resize({ s.width, s.width });
+		for (int i = 0; i < s.width; i++) {
+			for (int j = 0; j < s.width; j++) {
+				unsigned char depth = boundaryTaperedPerlinNoise.getPixel(sf::Vector2u(i, j)).r;
+				sf::Color landTypeColor;
+				if (depth < 50)
+					landTypeColor = sf::Color(0, 0, 255);
+				else
+					landTypeColor = sf::Color(0, 255, 0);
+				waterLandSeparationLayer.setPixel(sf::Vector2u(i, j), landTypeColor);
+			}
+		}
+		s.worldLayerProgression.push_back(waterLandSeparationLayer);
 	}
 
 	static void DisplayWorldMap(sf::RenderWindow& window) {
