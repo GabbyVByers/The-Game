@@ -19,7 +19,7 @@
 
 int main() {
     sf::RenderWindow window;
-    window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Window");
+    window.create(sf::VideoMode({ 1920, 1080 }), "Continental Conquest");
     window.setVerticalSyncEnabled(true);
     
     if (!ImGui::SFML::Init(window))

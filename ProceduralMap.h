@@ -20,20 +20,22 @@ public:
 
 		// Base Perlin Noise
 		PerlinNoise::Initialize(s.width);
-		PerlinNoise::AddLayer(5, 1.0f);
+		PerlinNoise::AddLayer(05, 0.85f);
+		PerlinNoise::AddLayer(20, 0.15f);
 		sf::Image basePerlinNoise = PerlinNoise::GetSFMLImage();
 		s.worldLayerProgression.push_back(basePerlinNoise);
+		std::vector<std::vector<float>> basePerlinNoiseFloatArray = PerlinNoise::Get2DFloatArray();
 
 		// Boundary Tapering
 		sf::Image boundaryTaperedPerlinNoise;
 		boundaryTaperedPerlinNoise.resize({ s.width, s.width });
-		std::vector<std::vector<float>> perlinFloatArray = PerlinNoise::Get2DFloatArray();
 		for (int i = 0; i < s.width; i++) {
 			for (int j = 0; j < s.width; j++) {
-				float weight = perlinFloatArray[i][j];
+				float weight = basePerlinNoiseFloatArray[i][j];
 				float halfWidth = (float)s.width / 2.0f;
 				float dist = sqrt((((float)i - halfWidth) * ((float)i - halfWidth)) + (((float)j - halfWidth) * ((float)j - halfWidth)));
 				dist = (halfWidth - dist) / halfWidth;
+				dist *= 3.0f;
 				dist = fmax(0.0f, dist);
 				dist = fmin(1.0f, dist);
 				weight *= dist;
@@ -50,7 +52,7 @@ public:
 			for (int j = 0; j < s.width; j++) {
 				unsigned char depth = boundaryTaperedPerlinNoise.getPixel(sf::Vector2u(i, j)).r;
 				sf::Color landTypeColor;
-				if (depth < 50)
+				if (depth < 127)
 					landTypeColor = sf::Color(0, 0, 255);
 				else
 					landTypeColor = sf::Color(0, 255, 0);
