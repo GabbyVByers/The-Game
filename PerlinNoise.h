@@ -1,11 +1,4 @@
 
-/*
-
-	Lightweight Perlin-Noise Library for SFML 3.0+
-	Gabby V. Byers 2025 (MIT Liscense)
-
-*/
-
 #pragma once
 
 #include <SFML/System.hpp>
@@ -17,7 +10,7 @@
 
 class PerlinNoise {
 public:
-	static void Initialize(unsigned int imageWidth, unsigned int providedSeed = 1);
+	static void Initialize(unsigned int imageWidth, unsigned int providedSeed = 0);
 	static void AddLayer(unsigned int octaves, float weight = 1.0f);
 	static sf::Image GetSFMLImage();
 	static std::vector<std::vector<float>> Get2DFloatArray();

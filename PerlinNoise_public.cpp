@@ -4,8 +4,8 @@
 void PerlinNoise::Initialize(unsigned int imageWidth, unsigned int providedSeed) {
 	State& s = GetState();
 
-	static int seed = 1;
-	if (providedSeed != 1)
+	static unsigned int seed = 1;
+	if (providedSeed != 0)
 		seed = providedSeed;
 	else
 		seed++;
