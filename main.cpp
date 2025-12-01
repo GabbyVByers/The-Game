@@ -69,13 +69,20 @@ public:
             if (province.marginPixels.size() == 0) {
                 continue;
             }
-            int randMarginIndex = rand() % province.marginPixels.size();
-            sf::Vector2u marginPixel = province.marginPixels[randMarginIndex];
-            bool isFreeRealEstate = worldMap.getPixel(marginPixel) == sf::Color(0, 255, 0);
-            if (!isFreeRealEstate) {
-                province.marginPixels.erase(province.marginPixels.begin() + randMarginIndex);
+            std::vector<sf::Vector2u> prunedMarginPixels;
+            for (int i = 0; i < province.marginPixels.size(); i++) {
+                sf::Vector2u marginPixel = province.marginPixels[i];
+                bool isFreeRealEstate = worldMap.getPixel(marginPixel) == sf::Color(0, 255, 0);
+                if (isFreeRealEstate) {
+                    prunedMarginPixels.push_back(marginPixel);
+                }
+            }
+            province.marginPixels = prunedMarginPixels;
+            if (province.marginPixels.size() == 0) {
                 continue;
             }
+            int randMarginIndex = rand() % province.marginPixels.size();
+            sf::Vector2u marginPixel = province.marginPixels[randMarginIndex];
             province.corePixels.push_back(marginPixel);
             worldMap.setPixel(marginPixel, province.color);
             province.marginPixels.erase(province.marginPixels.begin() + randMarginIndex);
@@ -97,10 +104,16 @@ public:
             }
         }
 
-        sf::Texture texture = sf::Texture(worldMap);
-        sf::Sprite sprite = sf::Sprite(texture);
-        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        window.draw(sprite);
+        sf::Image debugImage = worldMap;
+        for (Province& province : provinces) {
+            for (sf::Vector2u& marginPixel : province.marginPixels) {
+                debugImage.setPixel(marginPixel, sf::Color(255, 0, 0));
+            }
+        }
+        sf::Texture debugTexture = sf::Texture(debugImage);
+        sf::Sprite debugSprite = sf::Sprite(debugTexture);
+        debugSprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        window.draw(debugSprite);
     }
 
 private:
@@ -138,7 +151,7 @@ private:
 int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Continental Conquest");
-    window.setVerticalSyncEnabled(true);
+    //window.setVerticalSyncEnabled(true);
     
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGui Init");
@@ -169,7 +182,9 @@ int main() {
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
-            worldMap.saveToFile("world_map.png");
+            if (worldMap.saveToFile("world_map.png")) {
+                std::cout << "Image Saved Successfully\n";
+            }
         }
         ImGui::End();
 
