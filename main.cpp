@@ -16,128 +16,66 @@
 
 #include "PerlinNoise.h"
 #include "ProceduralMap.h"
+#include "ProvinceCracker.h"
 
-
-class ProvinceCracker {
+class ProvinceGeometryBuilder {
 public:
-    static void CrackProvinces(sf::Image& worldMap) {
+    static void FloodFillProvinces(sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
-        provinces.clear();
 
-        int density = 100;
-        int mapWidth = worldMap.getSize().x;
-        int stride = mapWidth / density;
-        for (int i = 0; i < density; i++) {
-            for (int j = 0; j < density; j++) {
-                sf::Vector2u position = sf::Vector2u(i * stride, j * stride);
-                bool isWater = worldMap.getPixel(position) == sf::Color(0, 0, 255);
-                if (isWater) {
-                    continue;
-                }
-                sf::Color provColor = GetUniqueColor();
+        provinces.clear();
+        unsigned int width = worldMap.getSize().x;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < width; j++) {
                 Province newProvince;
-                newProvince.color = provColor;
-                newProvince.corePixels.push_back(position);
-                std::vector<sf::Vector2i> offsets = {
-                    sf::Vector2i(-1,  0),
-                    sf::Vector2i( 1,  0),
-                    sf::Vector2i( 0, -1),
-                    sf::Vector2i( 0,  1)
-                };
-                for (const sf::Vector2i& offset : offsets) {
-                    sf::Vector2u marginPixel = position;
-                    marginPixel.x += offset.x;
-                    marginPixel.y += offset.y;
-                    bool isFreeRealEstate = worldMap.getPixel(marginPixel) == sf::Color(0, 255, 0);
-                    if (!isFreeRealEstate) {
-                        continue;
+                sf::Vector2u currentPosition = sf::Vector2u(i, j);
+                sf::Color currentColor = worldMap.getPixel(currentPosition);
+                if (currentColor == sf::Color(0, 255, 0))
+                    continue;
+                if (currentColor == sf::Color(0, 0, 255))
+                    continue;
+                for (Province& province : provinces) {
+                    if (province.color == currentColor) {
+                        province.pixels.push_back(currentPosition);
+                        goto nestedContinue;
                     }
-                    newProvince.marginPixels.push_back(marginPixel);
                 }
-                worldMap.setPixel(position, provColor);
+                newProvince.color = currentColor;
+                newProvince.pixels.push_back(currentPosition);
                 provinces.push_back(newProvince);
+            nestedContinue:
+                continue;
             }
         }
     }
 
-    static void ItterateProvinceGrowth(sf::RenderWindow& window, sf::Image& worldMap) {
+    static void DebugVisualize(sf::RenderWindow& window, sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
-
-        for (Province& province : provinces) {
-            if (province.marginPixels.size() == 0) {
-                continue;
-            }
-            std::vector<sf::Vector2u> prunedMarginPixels;
-            for (int i = 0; i < province.marginPixels.size(); i++) {
-                sf::Vector2u marginPixel = province.marginPixels[i];
-                bool isFreeRealEstate = worldMap.getPixel(marginPixel) == sf::Color(0, 255, 0);
-                if (isFreeRealEstate) {
-                    prunedMarginPixels.push_back(marginPixel);
-                }
-            }
-            province.marginPixels = prunedMarginPixels;
-            if (province.marginPixels.size() == 0) {
-                continue;
-            }
-            int randMarginIndex = rand() % province.marginPixels.size();
-            sf::Vector2u marginPixel = province.marginPixels[randMarginIndex];
-            province.corePixels.push_back(marginPixel);
-            worldMap.setPixel(marginPixel, province.color);
-            province.marginPixels.erase(province.marginPixels.begin() + randMarginIndex);
-            std::vector<sf::Vector2i> offsets = {
-                    sf::Vector2i(-1,  0),
-                    sf::Vector2i(1,  0),
-                    sf::Vector2i(0, -1),
-                    sf::Vector2i(0,  1)
-            };
-            for (sf::Vector2i& offset : offsets) {
-                sf::Vector2u newMarginPixel = marginPixel;
-                newMarginPixel.x += offset.x;
-                newMarginPixel.y += offset.y;
-                bool isFreeRealEstate = worldMap.getPixel(newMarginPixel) == sf::Color(0, 255, 0);
-                if (!isFreeRealEstate) {
-                    continue;
-                }
-                province.marginPixels.push_back(newMarginPixel);
-            }
+        
+        static int index = 0;
+        if (index >= provinces.size()) {
+            index = 0;
         }
 
-        sf::Image debugImage = worldMap;
-        for (Province& province : provinces) {
-            for (sf::Vector2u& marginPixel : province.marginPixels) {
-                debugImage.setPixel(marginPixel, sf::Color(255, 0, 0));
-            }
+        Province& province = provinces[index++];
+        for (sf::Vector2u pixel : province.pixels) {
+            worldMap.setPixel(pixel, sf::Color(255, 0, 0));
         }
-        sf::Texture debugTexture = sf::Texture(debugImage);
-        sf::Sprite debugSprite = sf::Sprite(debugTexture);
-        debugSprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        window.draw(debugSprite);
+
+        sf::Texture texture = sf::Texture(worldMap);
+        sf::Sprite sprite = sf::Sprite(texture);
+        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        window.draw(sprite);
     }
 
 private:
     struct Province {
         sf::Color color;
-        std::vector<sf::Vector2u> corePixels;
-        std::vector<sf::Vector2u> marginPixels;
+        std::vector<sf::Vector2u> pixels;
+        std::vector<sf::Vector2u> vertices;
     };
-
-    static sf::Color GetUniqueColor() {
-        State& s = GetState();
-        while (true) {
-            unsigned char r = rand() % 255;
-            unsigned char g = rand() % 255;
-            unsigned char b = rand() % 255;
-            sf::Color newColor = sf::Color(r, g, b);
-            for (Province& prov : s.provinces) {
-                if (newColor == prov.color) {
-                    continue;
-                }
-            }
-            return newColor;
-        }
-    }
 
     struct State {
         std::vector<Province> provinces;
@@ -150,9 +88,10 @@ private:
 
 int main() {
     sf::RenderWindow window;
-    window.create(sf::VideoMode({ 1920, 1080 }), "Continental Conquest");
-    //window.setVerticalSyncEnabled(true);
-    
+    window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Risk");
+    window.setVerticalSyncEnabled(true);
+    //window.setFramerateLimit(10);
+
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGui Init");
     ImGui::GetIO().IniFilename = nullptr;
@@ -163,6 +102,8 @@ int main() {
     ProceduralMap::GenerateWorldMap(800, 2);
     sf::Image worldMap = ProceduralMap::GetSFMLImage();
     ProvinceCracker::CrackProvinces(worldMap);
+    ProvinceCracker::ItterateUntilFinished(worldMap);
+    ProvinceGeometryBuilder::FloodFillProvinces(worldMap);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -178,7 +119,12 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
-        ProvinceCracker::ItterateProvinceGrowth(window, worldMap);
+        sf::Texture texture = sf::Texture(worldMap);
+        sf::Sprite sprite = sf::Sprite(texture);
+        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        window.draw(sprite);
+
+        ProvinceGeometryBuilder::DebugVisualize(window, worldMap);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {

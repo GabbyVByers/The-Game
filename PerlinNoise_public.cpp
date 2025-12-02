@@ -3,6 +3,8 @@
 
 void PerlinNoise::Initialize(unsigned int imageWidth, unsigned int providedSeed) {
 	State& s = GetState();
+	unsigned int& width = s.width;
+	std::vector<std::vector<float>>& noiseValueArray = s.noiseValueArray;
 
 	static unsigned int seed = 1;
 	if (providedSeed != 0)
@@ -11,20 +13,22 @@ void PerlinNoise::Initialize(unsigned int imageWidth, unsigned int providedSeed)
 		seed++;
 	srand(seed);
 
-	s.width = imageWidth;
-	s.noiseValueArray.clear();
-	for (int i = 0; i < s.width; i++) {
+	width = imageWidth;
+	noiseValueArray.clear();
+	for (int i = 0; i < width; i++) {
 		std::vector<float> row;
-		for (int j = 0; j < s.width; j++) {
+		for (int j = 0; j < width; j++) {
 			float zero = 0.0f;
 			row.push_back(zero);
 		}
-		s.noiseValueArray.push_back(row);
+		noiseValueArray.push_back(row);
 	}
 }
 
 void PerlinNoise::AddLayer(unsigned int octaves, float weight) {
 	State& s = GetState();
+	unsigned int& width = s.width;
+	std::vector<std::vector<float>>& noiseValueArray = s.noiseValueArray;
 
 	std::vector<std::vector<Arrow>> arrows;
 	for (int i = 0; i < (octaves + 2); i++) {
@@ -46,9 +50,9 @@ void PerlinNoise::AddLayer(unsigned int octaves, float weight) {
 		}
 	}
 
-	for (int i = 0; i < s.width; i++) {
-		for (int j = 0; j < s.width; j++) {
-			sf::Vector2f worldPos = sf::Vector2f(((float)i / s.width) + (0.5f / s.width), ((float)j / s.width) + (0.5f / s.width));
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < width; j++) {
+			sf::Vector2f worldPos = sf::Vector2f(((float)i / width) + (0.5f / width), ((float)j / width) + (0.5f / width));
 			unsigned int refIndex_i = (unsigned int)(worldPos.x / epsilon);
 			unsigned int refIndex_j = (unsigned int)(worldPos.y / epsilon);
 
@@ -81,7 +85,7 @@ void PerlinNoise::AddLayer(unsigned int octaves, float weight) {
 			float lerpABDC = (lerpAB * (1.0f - weightUpDown)) + (lerpDC * weightUpDown);
 
 			float totalNoise = (lerpABDC + 0.707f) / 1.414f;
-			float& currValue = s.noiseValueArray[i][j];
+			float& currValue = noiseValueArray[i][j];
 			currValue += totalNoise * weight;
 			currValue = fmax(0.0f, currValue);
 			currValue = fmin(1.0f, currValue);
@@ -91,12 +95,14 @@ void PerlinNoise::AddLayer(unsigned int octaves, float weight) {
 
 sf::Image PerlinNoise::GetSFMLImage() {
 	State& s = GetState();
+	unsigned int& width = s.width;
+	std::vector<std::vector<float>>& noiseValueArray = s.noiseValueArray;
 
 	sf::Image noiseImage;
-	noiseImage.resize({ s.width, s.width });
-	for (int i = 0; i < s.width; i++) {
-		for (int j = 0; j < s.width; j++) {
-			float weight = s.noiseValueArray[i][j];
+	noiseImage.resize({ width, width });
+	for (int i = 0; i < width; i++) {
+		for (int j = 0; j < width; j++) {
+			float weight = noiseValueArray[i][j];
 			noiseImage.setPixel(sf::Vector2u(i, j), sf::Color(255 * weight, 255 * weight, 255 * weight));
 		}
 	}

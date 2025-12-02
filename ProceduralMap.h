@@ -23,7 +23,7 @@ public:
 		width = setWidth;
 
 		// Base Perlin Noise
-		PerlinNoise::Initialize(s.width, seed);
+		PerlinNoise::Initialize(width, seed);
 		PerlinNoise::AddLayer(05, 0.85f);
 		PerlinNoise::AddLayer(20, 0.15f);
 		sf::Image basePerlinNoise = PerlinNoise::GetSFMLImage();
@@ -32,11 +32,11 @@ public:
 
 		// Boundary Tapering
 		sf::Image boundaryTaperedPerlinNoise;
-		boundaryTaperedPerlinNoise.resize({ s.width, s.width });
-		for (int i = 0; i < s.width; i++) {
-			for (int j = 0; j < s.width; j++) {
+		boundaryTaperedPerlinNoise.resize({ width, width });
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < width; j++) {
 				float weight = basePerlinNoiseFloatArray[i][j];
-				float halfWidth = (float)s.width / 2.0f;
+				float halfWidth = (float)width / 2.0f;
 				float dist = sqrt((((float)i - halfWidth) * ((float)i - halfWidth)) + (((float)j - halfWidth) * ((float)j - halfWidth)));
 				dist = (halfWidth - dist) / halfWidth;
 				dist *= 3.0f;
@@ -51,9 +51,9 @@ public:
 
 		// And on the 67th day there was Water and Land
 		sf::Image waterLandSeparationLayer;
-		waterLandSeparationLayer.resize({ s.width, s.width });
-		for (int i = 0; i < s.width; i++) {
-			for (int j = 0; j < s.width; j++) {
+		waterLandSeparationLayer.resize({ width, width });
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < width; j++) {
 				unsigned char depth = boundaryTaperedPerlinNoise.getPixel(sf::Vector2u(i, j)).r;
 				sf::Color landTypeColor;
 				if (depth < 127)
@@ -69,12 +69,13 @@ public:
 	static void DisplayWorldMap(sf::RenderWindow& window) {
 		State& s = GetState();
 		std::vector<sf::Image>& worldLayerProgression = s.worldLayerProgression;
+		unsigned int& width = s.width;
 
 		for (int i = 0; i < worldLayerProgression.size(); i++) {
 			sf::Image image = worldLayerProgression[i];
 			sf::Texture texture = sf::Texture(image);
 			sf::Sprite sprite = sf::Sprite(texture);
-			sprite.setPosition({ 100.0f + (i * 100.0f) + ((float)s.width * i), 100.0f });
+			sprite.setPosition({ 100.0f + (i * 100.0f) + ((float)width * i), 100.0f });
 			window.draw(sprite);
 		}
 	}

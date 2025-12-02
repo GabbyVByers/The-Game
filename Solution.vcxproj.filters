@@ -25,6 +25,9 @@
     <Filter Include="Personal Libraries\ProceduralMap">
       <UniqueIdentifier>{a75f2570-8ba6-4bc7-8ee0-46f23088e356}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Personal Libraries\ProvinceCracker">
+      <UniqueIdentifier>{78135a03-9911-4030-9f27-a16fb5ab6c9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -97,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="ProceduralMap.h">
       <Filter>Personal Libraries\ProceduralMap</Filter>
+    </ClInclude>
+    <ClInclude Include="ProvinceCracker.h">
+      <Filter>Personal Libraries\ProvinceCracker</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
