@@ -40,7 +40,7 @@ public:
         FindCenterOfMass();
         FindFriends(worldMap);
         FindCoastalProvinces(worldMap, window);
-        GetRealBorderVertices(window);
+        GetBorderVertices(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -365,61 +365,60 @@ public:
         }
     }
 
-    static void GetRealBorderVertices(sf::RenderWindow& window) {
+    static void GetBorderVertices(sf::RenderWindow& window) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
         for (Province& province : provinces) {
+
+            std::vector<sf::Vertex> borderVertices;
             for (int i = 0; i < province.vertices.size(); i++) {
                 int currIndex = i;
                 int nextIndex = i + 1;
-                if (i = province.vertices.size() - 1) {
+                if (nextIndex == province.vertices.size()) {
                     nextIndex = 0;
                 }
-                sf::Vector2u intVert_A = province.vertices[currIndex];
-                sf::Vector2u intVert_B = province.vertices[nextIndex];
-                sf::Vertex A; A.position = sf::Vector2f((float)intVert_A.x, (float)intVert_A.y);
-                sf::Vertex B; B.position = sf::Vector2f((float)intVert_B.x, (float)intVert_B.y);
-                A.color = province.color;
-                B.color = province.color;
-                province.borderVertices.push_back(A);
-                province.borderVertices.push_back(B);
+                sf::Vector2u vec_A = province.vertices[currIndex];
+                sf::Vector2u vec_B = province.vertices[nextIndex];
+                sf::Vertex vertex_A; vertex_A.position = sf::Vector2f((float)vec_A.x, (float)vec_A.y);
+                sf::Vertex vertex_B; vertex_B.position = sf::Vector2f((float)vec_B.x, (float)vec_B.y);
+                borderVertices.push_back(vertex_A);
+                borderVertices.push_back(vertex_B);
             }
+            province.borderVertices = borderVertices;
 
             // Debug Visual
+
+            float min_x = FLT_MAX;
+            float min_y = FLT_MAX;
+            for (const sf::Vertex& vertex : borderVertices) {
+                if (vertex.position.x < min_x) {
+                    min_x = vertex.position.x;
+                }
+                if (vertex.position.y < min_y) {
+                    min_y = vertex.position.y;
+                }
+            }
+
+            for (sf::Vertex& vertex : borderVertices) {
+                vertex.position.x -= min_x;
+                vertex.position.y -= min_y;
+                vertex.position.x += 2.0f;
+                vertex.position.y += 2.0f;
+            }
+            for (sf::Vertex& vertex : borderVertices) {
+                vertex.position *= 25.0f;
+            }
+
             sf::Clock deltaClock;
             while (true) {
                 HandleEvents(window);
                 ImGui::SFML::Update(window, deltaClock.restart());
                 window.clear(sf::Color(20, 20, 40));
 
-
-                std::vector<sf::Vertex> borderVerts = province.borderVertices;
-                float min_x = FLT_MAX;
-                float min_y = FLT_MAX;
-                for (sf::Vertex& vert : borderVerts) {
-                    if (vert.position.x < min_x) {
-                        min_x = vert.position.x;
-                    }
-                    if (vert.position.y < min_y) {
-                        min_y = vert.position.y;
-                    }
-                }
-                //for (sf::Vertex& vert : borderVerts) {
-                //    vert.position.x -= min_x;
-                //    vert.position.y -= min_y;
-                //}
-                //for (sf::Vertex vert : borderVerts) {
-                //    vert.position *= 20.0f;
-                //}
-
-                window.draw(&borderVerts[0], borderVerts.size(), sf::PrimitiveType::Lines);
+                window.draw(&borderVertices[0], borderVertices.size(), sf::PrimitiveType::Lines);
 
                 ImGui::Begin("Debugger");
-                ImGui::Text("min_x: %f", min_x);
-                ImGui::Text("min_y: %f", min_y);
-                ImGui::Text("x: %f", borderVerts[0].position.x);
-                ImGui::Text("y: %f", borderVerts[0].position.y);
                 if (ImGui::Button("Next")) {
                     break;
                 }
