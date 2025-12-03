@@ -133,6 +133,57 @@ public:
         }
 
         // New Corner
+        for (Province& province : provinces) {
+            for (sf::Vector2u pixel : province.pixels) {
+                sf::Vector2u currentPosition = pixel;
+                sf::Color currentColor = worldMap.getPixel(currentPosition);
+                std::vector<sf::Vector2i> offsets = {
+                    sf::Vector2i(-1, -1),
+                    sf::Vector2i(-1,  1),
+                    sf::Vector2i( 1, -1),
+                    sf::Vector2i( 1,  1)
+                };
+                for (sf::Vector2i offset : offsets) {
+                    sf::Vector2u offsetPosition = currentPosition;
+                    sf::Vector2u position_A = currentPosition;
+                    sf::Vector2u position_B = currentPosition;
+                    sf::Vector2u position_C = currentPosition;
+                    sf::Vector2u position_D = currentPosition;
+                    position_B.y += offset.y;
+                    position_C.x += offset.x;
+                    position_D.x += offset.x;
+                    position_D.y += offset.y;
+                    sf::Color color_A = worldMap.getPixel(position_A);
+                    sf::Color color_B = worldMap.getPixel(position_B);
+                    sf::Color color_C = worldMap.getPixel(position_C);
+                    sf::Color color_D = worldMap.getPixel(position_D);
+                    if (color_A == color_B) {
+                        if (color_A != color_D) {
+                            if (color_A != color_C) {
+                                sf::Vector2u vertexPosition = currentPosition;
+                                vertexPosition.x *= 2;
+                                vertexPosition.y *= 2;
+                                vertexPosition.x += offset.x;
+                                vertexPosition.y += offset.y;
+                                province.vertices.push_back(vertexPosition);
+                            }
+                        }
+                    }
+                    if (color_A == color_C) {
+                        if (color_A != color_D) {
+                            if (color_A != color_B) {
+                                sf::Vector2u vertexPosition = currentPosition;
+                                vertexPosition.x *= 2;
+                                vertexPosition.y *= 2;
+                                vertexPosition.x += offset.x;
+                                vertexPosition.y += offset.y;
+                                province.vertices.push_back(vertexPosition);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     static void SortVertices(sf::RenderWindow& window) {
@@ -144,6 +195,8 @@ public:
             std::vector<sf::Vector2u>& unsortedVertices = province.vertices;
             sortedVertices.push_back(unsortedVertices[0]);
             unsortedVertices.erase(unsortedVertices.begin());
+
+
 
             float min_x = FLT_MAX;
             float min_y = FLT_MAX;
@@ -157,11 +210,53 @@ public:
             }
 
             while (true) {
+                // Debugging Visualization
+                HandleEvents(window);
+                window.clear(sf::Color(20, 20, 40));
+                std::vector<sf::Vertex> debugUnsortedVertices;
+                std::vector<sf::Vertex> debugSortedVertices;
+                for (sf::Vector2u vec2u : unsortedVertices) {
+                    sf::Vertex vert;
+                    vert.position.x = (float)vec2u.x;
+                    vert.position.y = (float)vec2u.y;
+                    vert.position.x -= min_x;
+                    vert.position.y -= min_y;
+                    vert.position.x += 1.5f;
+                    vert.position.y += 1.5f;
+                    vert.position *= 25.0f;
+                    vert.color = sf::Color(255, 80, 80);
+                    debugUnsortedVertices.push_back(vert);
+                }
+                for (sf::Vector2u vec2u : sortedVertices) {
+                    sf::Vertex vert;
+                    vert.position.x = (float)vec2u.x;
+                    vert.position.y = (float)vec2u.y;
+                    vert.position.x -= min_x;
+                    vert.position.y -= min_y;
+                    vert.position.x += 1.5f;
+                    vert.position.y += 1.5f;
+                    vert.position *= 25.0f;
+                    vert.color = sf::Color(80, 255, 80);
+                    debugSortedVertices.push_back(vert);
+                }
+                window.draw(&debugUnsortedVertices[0], debugUnsortedVertices.size(), sf::PrimitiveType::Points);
+                window.draw(&debugSortedVertices[0], debugSortedVertices.size(), sf::PrimitiveType::Points);
+                window.display();
+
+                if (unsortedVertices.size() == 0) {
+                    break;
+                }
+
                 sf::Vector2u currentVertex = sortedVertices[sortedVertices.size() - 1];
                 float closestDistance = FLT_MAX;
                 int indexClosestVertex = 0;
                 for (int i = 0; i < unsortedVertices.size(); i++) {
                     sf::Vector2u otherVertex = unsortedVertices[i];
+                    if (sortedVertices.size() == 1) {
+                        if ((float)otherVertex.y < (float)currentVertex.y) {
+                            continue;
+                        }
+                    }
                     float distance = (((float)currentVertex.x - (float)otherVertex.x) * ((float)currentVertex.x - (float)otherVertex.x)) +
                                      (((float)currentVertex.y - (float)otherVertex.y) * ((float)currentVertex.y - (float)otherVertex.y));
                     if (distance < closestDistance) {
@@ -171,48 +266,6 @@ public:
                 }
                 sortedVertices.push_back(unsortedVertices[indexClosestVertex]);
                 unsortedVertices.erase(unsortedVertices.begin() + indexClosestVertex);
-                if (unsortedVertices.size() == 0) {
-                    break;
-                }
-
-                HandleEvents(window);
-                window.clear(sf::Color(20, 20, 40));
-                std::vector<sf::Vertex> debugVertices;
-                for (sf::Vector2u vec : unsortedVertices) {
-                    sf::Vector2f pos = sf::Vector2f(vec.x, vec.y);
-                    sf::Vertex vert;
-                    vert.position = pos;
-                    vert.color = sf::Color(255, 255, 255);
-                    debugVertices.push_back(vert);
-                }
-
-                for (sf::Vertex& vert : debugVertices) {
-                    vert.position.x -= min_x;
-                    vert.position.y -= min_y;
-                    vert.position.x += 2.0f;
-                    vert.position.y += 2.0f;
-                }
-
-                for (sf::Vertex& vert : debugVertices) {
-                    vert.position *= 35.0f;
-                }
-                
-                sf::CircleShape circleSprite;
-                circleSprite.setRadius(2.0f);
-                sf::Vector2f circlePos = sf::Vector2f(currentVertex.x, currentVertex.y);
-                circlePos.x += 2.0f;
-                circlePos.y += 2.0f;
-                circlePos.x -= min_x;
-                circlePos.y -= min_y;
-                circlePos *= 35.0f;
-                circlePos.x -= 2.0f;
-                circlePos.y -= 2.0f;
-
-                circleSprite.setPosition(circlePos);
-
-                window.draw(&debugVertices[0], debugVertices.size(), sf::PrimitiveType::Points);
-                window.draw(circleSprite);
-                window.display();
             }
             province.vertices = sortedVertices;
         }
