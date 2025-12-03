@@ -37,7 +37,8 @@ public:
         GetVertices(worldMap);
         SortVertices();
         RemoveInlineVertices();
-        FindCenterOfMass(window);
+        FindCenterOfMass();
+        FindFriends(worldMap, window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -279,7 +280,7 @@ public:
         }
     }
 
-    static void FindCenterOfMass(sf::RenderWindow& window) {
+    static void FindCenterOfMass() {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -294,47 +295,71 @@ public:
             }
             sf::Vector2f centerMass = sf::Vector2f(x_sum / count, y_sum / count);
             province.centerMass = centerMass;
+        }
+    }
+
+    static void FindFriends(sf::Image& worldMap, sf::RenderWindow& window) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+
+        std::cout << "here";
+        for (Province& province : provinces) {
+            std::vector<sf::Color> friendColors;
+            for (sf::Vector2u pixel : province.pixels) {
+                std::vector<sf::Vector2i> offsets = {
+                    sf::Vector2i(-1,  0),
+                    sf::Vector2i( 1,  0),
+                    sf::Vector2i( 0, -1),
+                    sf::Vector2i( 0,  1)
+                };
+                for (sf::Vector2i offset : offsets) {
+                    sf::Vector2u offsetPosition = pixel;
+                    offsetPosition.x += offset.x;
+                    offsetPosition.y += offset.y;
+                    sf::Color offsetColor = worldMap.getPixel(offsetPosition);
+                    if (offsetColor != province.color) {
+                        friendColors.push_back(offsetColor);
+                    }
+                }
+            }
+            for (int i = 0; i < provinces.size(); i++) {
+                Province& friendProvince = provinces[i];
+                for (sf::Color friendColor : friendColors) {
+                    if (friendColor == friendProvince.color) {
+                        province.neighbourIndecies.push_back(i);
+                        goto doubleContinue;
+                    }
+                }
+            doubleContinue:
+                continue;
+            }
 
             // Debug Visual
             sf::Clock deltaClock;
-            while (true){
+            while (true) {
                 HandleEvents(window);
                 ImGui::SFML::Update(window, deltaClock.restart());
                 window.clear(sf::Color(20, 20, 40));
 
-                unsigned int min_x = UINT_MAX;
-                unsigned int min_y = UINT_MAX;
-                for (sf::Vector2u vec : province.vertices) {
-                    if (vec.x < min_x) {
-                        min_x = vec.x;
-                    }
-                    if (vec.y < min_y) {
-                        min_y = vec.y;
+                sf::Image debugImage = worldMap;
+                for (sf::Vector2u corePixel : province.pixels) {
+                    debugImage.setPixel(corePixel, sf::Color(255, 0, 0));
+                }
+                for (int friendIndex : province.neighbourIndecies) {
+                    for (sf::Vector2u friendPixel : provinces[friendIndex].pixels) {
+                        debugImage.setPixel(friendPixel, sf::Color(255, 255, 255));
                     }
                 }
 
-                std::vector<sf::Vertex> debugOutline;
-                for (sf::Vector2u vec : province.vertices) {
-                    sf::Vertex vert;
-                    vert.position.x = vec.x - min_x + 2;
-                    vert.position.y = vec.y - min_y + 2;
-                    vert.position *= 25.0f;
-                    debugOutline.push_back(vert);
-                }
-
-                sf::CircleShape center;
-                sf::Vector2f centerPosition;
-                centerPosition.x = province.centerMass.x - min_x + 2;
-                centerPosition.y = province.centerMass.y - min_y + 2;
-                centerPosition *= 25.0f;
-                center.setRadius(2.0f);
-                center.setFillColor(sf::Color(255, 255, 255));
-                center.setPosition(centerPosition);
-
-                window.draw(center);
-                window.draw(&debugOutline[0], debugOutline.size(), sf::PrimitiveType::LineStrip);
+                sf::Texture texture = sf::Texture(debugImage);
+                sf::Sprite sprite = sf::Sprite(texture);
+                sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+                window.draw(sprite);
 
                 ImGui::Begin("Debugger");
+                ImGui::Text("My Color: %i", province.color.r);
+                ImGui::Text("Num Friend Colors: %i", friendColors.size());
+                ImGui::Text("Friends: %i", province.neighbourIndecies.size());
                 if (ImGui::Button("Next")) {
                     break;
                 }
@@ -345,7 +370,6 @@ public:
         }
     }
 
-    // todo: get center of mass
     // todo: get neighbours
     // todo: is shoreline?
 
@@ -367,6 +391,21 @@ private:
         return state;
     }
 };
+
+//// Debug Visual
+//sf::Clock deltaClock;
+//while (true) {
+//    HandleEvents(window);
+//    ImGui::SFML::Update(window, deltaClock.restart());
+//    window.clear(sf::Color(20, 20, 40));
+//    ImGui::Begin("Debugger");
+//    if (ImGui::Button("Next")) {
+//        break;
+//    }
+//    ImGui::End();
+//    ImGui::SFML::Render(window);
+//    window.display();
+//}
 
 int main() {
     sf::RenderWindow window;
@@ -391,10 +430,10 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
-        //sf::Texture texture = sf::Texture(worldMap);
-        //sf::Sprite sprite = sf::Sprite(texture);
-        //sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        //window.draw(sprite);
+        sf::Texture texture = sf::Texture(worldMap);
+        sf::Sprite sprite = sf::Sprite(texture);
+        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        window.draw(sprite);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
