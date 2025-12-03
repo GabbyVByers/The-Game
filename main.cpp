@@ -32,10 +32,10 @@ void HandleEvents(sf::RenderWindow& window) {
 
 class ProvinceGeometryBuilder {
 public:
-    static void BuildGeometry(sf::Image& worldMap, sf::RenderWindow& window) {
+    static void BuildGeometry(sf::Image& worldMap) {
         FillProvinces(worldMap);
         GetVertices(worldMap);
-        SortVertices(window);
+        SortVertices();
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -186,7 +186,7 @@ public:
         }
     }
 
-    static void SortVertices(sf::RenderWindow& window) {
+    static void SortVertices() {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -210,39 +210,6 @@ public:
             }
 
             while (true) {
-                // Debugging Visualization
-                HandleEvents(window);
-                window.clear(sf::Color(20, 20, 40));
-                std::vector<sf::Vertex> debugUnsortedVertices;
-                std::vector<sf::Vertex> debugSortedVertices;
-                for (sf::Vector2u vec2u : unsortedVertices) {
-                    sf::Vertex vert;
-                    vert.position.x = (float)vec2u.x;
-                    vert.position.y = (float)vec2u.y;
-                    vert.position.x -= min_x;
-                    vert.position.y -= min_y;
-                    vert.position.x += 1.5f;
-                    vert.position.y += 1.5f;
-                    vert.position *= 25.0f;
-                    vert.color = sf::Color(255, 80, 80);
-                    debugUnsortedVertices.push_back(vert);
-                }
-                for (sf::Vector2u vec2u : sortedVertices) {
-                    sf::Vertex vert;
-                    vert.position.x = (float)vec2u.x;
-                    vert.position.y = (float)vec2u.y;
-                    vert.position.x -= min_x;
-                    vert.position.y -= min_y;
-                    vert.position.x += 1.5f;
-                    vert.position.y += 1.5f;
-                    vert.position *= 25.0f;
-                    vert.color = sf::Color(80, 255, 80);
-                    debugSortedVertices.push_back(vert);
-                }
-                window.draw(&debugUnsortedVertices[0], debugUnsortedVertices.size(), sf::PrimitiveType::Points);
-                window.draw(&debugSortedVertices[0], debugSortedVertices.size(), sf::PrimitiveType::Points);
-                window.display();
-
                 if (unsortedVertices.size() == 0) {
                     break;
                 }
@@ -312,7 +279,6 @@ int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Risk");
     window.setVerticalSyncEnabled(true);
-    window.setFramerateLimit(5);
 
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGui Init");
@@ -324,7 +290,7 @@ int main() {
     sf::Image worldMap;
     ProceduralMap::GenerateWorldMap(worldMap, 800, 2);
     ProvinceCracker::BuildProvinces(worldMap);
-    ProvinceGeometryBuilder::BuildGeometry(worldMap, window);
+    ProvinceGeometryBuilder::BuildGeometry(worldMap);
 
     while (window.isOpen()) {
         HandleEvents(window);
@@ -332,10 +298,10 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
-        //sf::Texture texture = sf::Texture(worldMap);
-        //sf::Sprite sprite = sf::Sprite(texture);
-        //sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        //window.draw(sprite);
+        sf::Texture texture = sf::Texture(worldMap);
+        sf::Sprite sprite = sf::Sprite(texture);
+        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        window.draw(sprite);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
