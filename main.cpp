@@ -38,7 +38,8 @@ public:
         SortVertices();
         RemoveInlineVertices();
         FindCenterOfMass();
-        FindFriends(worldMap, window);
+        FindFriends(worldMap);
+        FindCoastalProvinces(worldMap, window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -298,11 +299,10 @@ public:
         }
     }
 
-    static void FindFriends(sf::Image& worldMap, sf::RenderWindow& window) {
+    static void FindFriends(sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
-        std::cout << "here";
         for (Province& province : provinces) {
             std::vector<sf::Color> friendColors;
             for (sf::Vector2u pixel : province.pixels) {
@@ -333,48 +333,74 @@ public:
             doubleContinue:
                 continue;
             }
-
-            // Debug Visual
-            sf::Clock deltaClock;
-            while (true) {
-                HandleEvents(window);
-                ImGui::SFML::Update(window, deltaClock.restart());
-                window.clear(sf::Color(20, 20, 40));
-
-                sf::Image debugImage = worldMap;
-                for (sf::Vector2u corePixel : province.pixels) {
-                    debugImage.setPixel(corePixel, sf::Color(255, 0, 0));
-                }
-                for (int friendIndex : province.neighbourIndecies) {
-                    for (sf::Vector2u friendPixel : provinces[friendIndex].pixels) {
-                        debugImage.setPixel(friendPixel, sf::Color(255, 255, 255));
-                    }
-                }
-
-                sf::Texture texture = sf::Texture(debugImage);
-                sf::Sprite sprite = sf::Sprite(texture);
-                sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-                window.draw(sprite);
-
-                ImGui::Begin("Debugger");
-                ImGui::Text("My Color: %i", province.color.r);
-                ImGui::Text("Num Friend Colors: %i", friendColors.size());
-                ImGui::Text("Friends: %i", province.neighbourIndecies.size());
-                if (ImGui::Button("Next")) {
-                    break;
-                }
-                ImGui::End();
-                ImGui::SFML::Render(window);
-                window.display();
-            }
         }
     }
 
-    // todo: get neighbours
+    static void FindCoastalProvinces(sf::Image& worldMap, sf::RenderWindow& window) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+
+        for (Province& province : provinces) {
+            for (sf::Vector2u pixel : province.pixels) {
+                std::vector<sf::Vector2i> offsets = {
+                    sf::Vector2i(-1,  0),
+                    sf::Vector2i( 1,  0),
+                    sf::Vector2i( 0, -1),
+                    sf::Vector2i( 0,  1)
+                };
+                for (sf::Vector2i offset : offsets) {
+                    sf::Vector2u offsetPosition = pixel;
+                    offsetPosition.x += offset.x;
+                    offsetPosition.y += offset.y;
+                    sf::Color color = worldMap.getPixel(offsetPosition);
+                    if (color == sf::Color(0, 0, 255)) {
+                        province.isCoastal = true;
+                        goto doubleContinue;
+                    }
+                }
+            }
+        doubleContinue:
+            continue;
+        }
+
+        // Debug Visual
+        sf::Clock deltaClock;
+        while (true) {
+            HandleEvents(window);
+            ImGui::SFML::Update(window, deltaClock.restart());
+            window.clear(sf::Color(20, 20, 40));
+
+            sf::Image debugImage = worldMap;
+            for (Province& province : provinces) {
+                for (sf::Vector2u pixel : province.pixels) {
+                    if (province.isCoastal) {
+                        debugImage.setPixel(pixel, sf::Color(255, 0, 0));
+                    }
+                    else {
+                        debugImage.setPixel(pixel, sf::Color(255, 255, 255));
+                    }
+                }
+            }
+            sf::Texture texture = sf::Texture(debugImage);
+            sf::Sprite sprite = sf::Sprite(texture);
+            sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+            window.draw(sprite);
+
+            ImGui::Begin("Debugger");
+            if (ImGui::Button("Next")) {
+                break;
+            }
+            ImGui::End();
+            ImGui::SFML::Render(window);
+            window.display();
+        }
+    }
+
     // todo: is shoreline?
 
 private:
     struct Province {
+        bool isCoastal = false;
         sf::Color color;
         sf::Vector2f centerMass;
         std::vector<int> neighbourIndecies;
