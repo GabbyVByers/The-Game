@@ -20,7 +20,7 @@
 
 class ProvinceGeometryBuilder {
 public:
-    static void FloodFillProvinces(sf::Image& worldMap) {
+    static void FillProvinces(sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -50,6 +50,71 @@ public:
         }
     }
 
+    static void GetVertices(sf::Image& worldMap) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+        
+        // Edge
+        for (Province& province : provinces) {
+            for (sf::Vector2u& pixel : province.pixels) {
+                sf::Vector2u& currentPosition = pixel;
+                sf::Color currentColor = worldMap.getPixel(currentPosition);
+                std::vector<sf::Vector2i> offsets = {
+                    sf::Vector2i(-1,  0),
+                    sf::Vector2i( 1,  0),
+                    sf::Vector2i( 0, -1),
+                    sf::Vector2i( 0,  1)
+                };
+                for (sf::Vector2i offset : offsets) {
+                    sf::Vector2u offsetPosition = currentPosition;
+                    offsetPosition.x += offset.x;
+                    offsetPosition.y += offset.y;
+                    sf::Color offsetColor = worldMap.getPixel(offsetPosition);
+                    if (currentColor != offsetColor) {
+                        sf::Vector2u vertexPosition = currentPosition;
+                        vertexPosition.x *= 2;
+                        vertexPosition.y *= 2;
+                        vertexPosition.x += offset.x;
+                        vertexPosition.y += offset.y;
+                        province.vertices.push_back(vertexPosition);
+                    }
+                }
+            }
+        }
+
+        // Corner
+        for (Province& province : provinces) {
+            for (sf::Vector2u& pixel : province.pixels) {
+                sf::Vector2u& currentPosition = pixel;
+                sf::Color currentColor = worldMap.getPixel(currentPosition);
+                std::vector<sf::Vector2i> offsets = {
+                    sf::Vector2i(-1, -1),
+                    sf::Vector2i(-1,  1),
+                    sf::Vector2i( 1, -1),
+                    sf::Vector2i( 1,  1)
+                };
+                for (sf::Vector2i offset : offsets) {
+                    sf::Vector2u offsetPosition_A = currentPosition;
+                    sf::Vector2u offsetPosition_B = currentPosition;
+                    offsetPosition_A.x += offset.x;
+                    offsetPosition_B.y += offset.y;
+                    sf::Color color_A = worldMap.getPixel(offsetPosition_A);
+                    sf::Color color_B = worldMap.getPixel(offsetPosition_B);
+                    if (color_A != color_B) {
+                        if ((color_A != currentColor) && (color_B != currentColor)) {
+                            sf::Vector2u vertexPosition = currentPosition;
+                            vertexPosition.x *= 2;
+                            vertexPosition.y *= 2;
+                            vertexPosition.x += offset.x;
+                            vertexPosition.y += offset.y;
+                            province.vertices.push_back(vertexPosition);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     static void DebugVisualize(sf::RenderWindow& window, sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
@@ -70,11 +135,23 @@ public:
         window.draw(sprite);
     }
 
+    static void PrintFirstProvinceVertices() {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+        Province& province = provinces[0];
+        for (sf::Vector2u vertex : province.vertices) {
+            std::cout << "(" << (unsigned)vertex.x << ", " << ((int)vertex.y * -1) << "),";
+        }
+    }
+
 private:
     struct Province {
         sf::Color color;
+        std::vector<int> neighbourIndecies;
         std::vector<sf::Vector2u> pixels;
         std::vector<sf::Vector2u> vertices;
+        std::vector<sf::Vertex> lineSegments;
+        std::vector<sf::Vertex> triangles;
     };
 
     struct State {
@@ -103,7 +180,9 @@ int main() {
     sf::Image worldMap = ProceduralMap::GetSFMLImage();
     ProvinceCracker::CrackProvinces(worldMap);
     ProvinceCracker::ItterateUntilFinished(worldMap);
-    ProvinceGeometryBuilder::FloodFillProvinces(worldMap);
+    ProvinceGeometryBuilder::FillProvinces(worldMap);
+    ProvinceGeometryBuilder::GetVertices(worldMap);
+    ProvinceGeometryBuilder::PrintFirstProvinceVertices();
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -124,7 +203,7 @@ int main() {
         sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
         window.draw(sprite);
 
-        ProvinceGeometryBuilder::DebugVisualize(window, worldMap);
+        //ProvinceGeometryBuilder::DebugVisualize(window, worldMap);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
