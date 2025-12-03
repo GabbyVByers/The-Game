@@ -60,6 +60,18 @@
     <ClCompile Include="PerlinNoise_private.cpp">
       <Filter>Personal Libraries\PerlinNoise</Filter>
     </ClCompile>
+    <ClCompile Include="ProceduralMap_public.cpp">
+      <Filter>Personal Libraries\ProceduralMap</Filter>
+    </ClCompile>
+    <ClCompile Include="ProceduralMap_private.cpp">
+      <Filter>Personal Libraries\ProceduralMap</Filter>
+    </ClCompile>
+    <ClCompile Include="ProvinceCracker_public.cpp">
+      <Filter>Personal Libraries\ProvinceCracker</Filter>
+    </ClCompile>
+    <ClCompile Include="ProvinceCracker_private.cpp">
+      <Filter>Personal Libraries\ProvinceCracker</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">

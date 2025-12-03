@@ -21,6 +21,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PerlinNoise_public.cpp" />
     <ClCompile Include="PerlinNoise_private.cpp" />
+    <ClCompile Include="ProceduralMap_private.cpp" />
+    <ClCompile Include="ProceduralMap_public.cpp" />
+    <ClCompile Include="ProvinceCracker_private.cpp" />
+    <ClCompile Include="ProvinceCracker_public.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig-SFML.h" />

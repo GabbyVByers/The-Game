@@ -20,6 +20,12 @@
 
 class ProvinceGeometryBuilder {
 public:
+    static void BuildGeometry(sf::Image& worldMap) {
+        FillProvinces(worldMap);
+        GetVertices(worldMap);
+        SortVertices();
+    }
+
     static void FillProvinces(sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
@@ -115,6 +121,37 @@ public:
         }
     }
 
+    static void SortVertices() {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+
+        for (Province& province : provinces) {
+            std::vector<sf::Vector2u> sortedVertices;
+            std::vector<sf::Vector2u>& unsortedVertices = province.vertices;
+            sortedVertices.push_back(unsortedVertices[0]);
+            unsortedVertices.erase(unsortedVertices.begin());
+
+            while (true) {
+                sf::Vector2u currentVertex = sortedVertices[sortedVertices.size() - 1];
+                float closestDistance = FLT_MAX;
+                int indexClosestVertex = 0;
+                for (int i = 0; i < unsortedVertices.size(); i++) {
+                    sf::Vector2u otherVertex = unsortedVertices[i];
+                    float distance = pow((currentVertex.x - otherVertex.x), 2) + pow((currentVertex.y - otherVertex.y), 2);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        indexClosestVertex = i;
+                    }
+                }
+                sortedVertices.push_back(unsortedVertices[indexClosestVertex]);
+                unsortedVertices.erase(unsortedVertices.begin() + indexClosestVertex);
+                if (unsortedVertices.size() == 0) {
+                    break;
+                }
+            }
+        }
+    }
+
     static void DebugVisualize(sf::RenderWindow& window, sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
@@ -135,23 +172,12 @@ public:
         window.draw(sprite);
     }
 
-    static void PrintFirstProvinceVertices() {
-        State& s = GetState();
-        std::vector<Province>& provinces = s.provinces;
-        Province& province = provinces[0];
-        for (sf::Vector2u vertex : province.vertices) {
-            std::cout << "(" << (unsigned)vertex.x << ", " << ((int)vertex.y * -1) << "),";
-        }
-    }
-
 private:
     struct Province {
         sf::Color color;
         std::vector<int> neighbourIndecies;
         std::vector<sf::Vector2u> pixels;
         std::vector<sf::Vector2u> vertices;
-        std::vector<sf::Vertex> lineSegments;
-        std::vector<sf::Vertex> triangles;
     };
 
     struct State {
@@ -167,7 +193,6 @@ int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Risk");
     window.setVerticalSyncEnabled(true);
-    //window.setFramerateLimit(10);
 
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGui Init");
@@ -176,13 +201,10 @@ int main() {
     ImPlot::CreateContext();
     sf::Clock deltaClock;
 
-    ProceduralMap::GenerateWorldMap(800, 2);
-    sf::Image worldMap = ProceduralMap::GetSFMLImage();
-    ProvinceCracker::CrackProvinces(worldMap);
-    ProvinceCracker::ItterateUntilFinished(worldMap);
-    ProvinceGeometryBuilder::FillProvinces(worldMap);
-    ProvinceGeometryBuilder::GetVertices(worldMap);
-    ProvinceGeometryBuilder::PrintFirstProvinceVertices();
+    sf::Image worldMap;
+    ProceduralMap::GenerateWorldMap(worldMap, 800, 2);
+    ProvinceCracker::BuildProvinces(worldMap);
+    ProvinceGeometryBuilder::BuildGeometry(worldMap);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -202,8 +224,6 @@ int main() {
         sf::Sprite sprite = sf::Sprite(texture);
         sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
         window.draw(sprite);
-
-        //ProvinceGeometryBuilder::DebugVisualize(window, worldMap);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
