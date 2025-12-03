@@ -18,12 +18,24 @@
 #include "ProceduralMap.h"
 #include "ProvinceCracker.h"
 
+void HandleEvents(sf::RenderWindow& window) {
+    while (const std::optional event = window.pollEvent()) {
+        ImGui::SFML::ProcessEvent(window, *event);
+        if (event->is<sf::Event::Closed>())
+            window.close();
+        if (const auto* resized = event->getIf<sf::Event::Resized>()) {
+            sf::FloatRect visible_area({ 0.0f, 0.0f }, sf::Vector2f(resized->size));
+            window.setView(sf::View(visible_area));
+        }
+    }
+}
+
 class ProvinceGeometryBuilder {
 public:
-    static void BuildGeometry(sf::Image& worldMap) {
+    static void BuildGeometry(sf::Image& worldMap, sf::RenderWindow& window) {
         FillProvinces(worldMap);
         GetVertices(worldMap);
-        SortVertices();
+        SortVertices(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -121,7 +133,7 @@ public:
         }
     }
 
-    static void SortVertices() {
+    static void SortVertices(sf::RenderWindow& window) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -131,13 +143,24 @@ public:
             sortedVertices.push_back(unsortedVertices[0]);
             unsortedVertices.erase(unsortedVertices.begin());
 
+            float min_x = FLT_MAX;
+            float min_y = FLT_MAX;
+            for (sf::Vector2u& vert : unsortedVertices) {
+                if (vert.y < min_y) {
+                    min_y = vert.y;
+                }
+                if (vert.x < min_x) {
+                    min_x = vert.x;
+                }
+            }
+
             while (true) {
                 sf::Vector2u currentVertex = sortedVertices[sortedVertices.size() - 1];
                 float closestDistance = FLT_MAX;
                 int indexClosestVertex = 0;
                 for (int i = 0; i < unsortedVertices.size(); i++) {
                     sf::Vector2u otherVertex = unsortedVertices[i];
-                    float distance = pow((currentVertex.x - otherVertex.x), 2) + pow((currentVertex.y - otherVertex.y), 2);
+                    float distance = sqrt(pow((float)(currentVertex.x - otherVertex.x), 2.0f) + pow((float)(currentVertex.y - otherVertex.y), 2.0f));
                     if (distance < closestDistance) {
                         closestDistance = distance;
                         indexClosestVertex = i;
@@ -148,7 +171,47 @@ public:
                 if (unsortedVertices.size() == 0) {
                     break;
                 }
+
+                HandleEvents(window);
+                window.clear(sf::Color(20, 20, 40));
+                std::vector<sf::Vertex> debugVertices;
+                for (sf::Vector2u vec : unsortedVertices) {
+                    sf::Vector2f pos = sf::Vector2f(vec.x, vec.y);
+                    sf::Vertex vert;
+                    vert.position = pos;
+                    vert.color = sf::Color(255, 255, 255);
+                    debugVertices.push_back(vert);
+                }
+
+                for (sf::Vertex& vert : debugVertices) {
+                    vert.position.x -= min_x;
+                    vert.position.y -= min_y;
+                    vert.position.x += 2.0f;
+                    vert.position.y += 2.0f;
+                }
+
+                for (sf::Vertex& vert : debugVertices) {
+                    vert.position *= 35.0f;
+                }
+                
+                sf::CircleShape circleSprite;
+                circleSprite.setRadius(2.0f);
+                sf::Vector2f circlePos = sf::Vector2f(currentVertex.x, currentVertex.y);
+                circlePos.x += 2.0f;
+                circlePos.y += 2.0f;
+                circlePos.x -= min_x;
+                circlePos.y -= min_y;
+                circlePos *= 35.0f;
+                circlePos.x -= 2.0f;
+                circlePos.y -= 2.0f;
+
+                circleSprite.setPosition(circlePos);
+
+                window.draw(&debugVertices[0], debugVertices.size(), sf::PrimitiveType::Points);
+                window.draw(circleSprite);
+                window.display();
             }
+            province.vertices = sortedVertices;
         }
     }
 
@@ -193,6 +256,7 @@ int main() {
     sf::RenderWindow window;
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Risk");
     window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(5);
 
     if (!ImGui::SFML::Init(window))
         assert(false && "Bad ImGui Init");
@@ -204,26 +268,18 @@ int main() {
     sf::Image worldMap;
     ProceduralMap::GenerateWorldMap(worldMap, 800, 2);
     ProvinceCracker::BuildProvinces(worldMap);
-    ProvinceGeometryBuilder::BuildGeometry(worldMap);
+    ProvinceGeometryBuilder::BuildGeometry(worldMap, window);
 
     while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            ImGui::SFML::ProcessEvent(window, *event);
-            if (event->is<sf::Event::Closed>())
-                window.close();
-            if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-                sf::FloatRect visible_area({ 0.0f, 0.0f }, sf::Vector2f(resized->size));
-                window.setView(sf::View(visible_area));
-            }
-        }
+        HandleEvents(window);
 
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
-        sf::Texture texture = sf::Texture(worldMap);
-        sf::Sprite sprite = sf::Sprite(texture);
-        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        window.draw(sprite);
+        //sf::Texture texture = sf::Texture(worldMap);
+        //sf::Sprite sprite = sf::Sprite(texture);
+        //sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        //window.draw(sprite);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
