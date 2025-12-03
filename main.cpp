@@ -196,19 +196,6 @@ public:
             sortedVertices.push_back(unsortedVertices[0]);
             unsortedVertices.erase(unsortedVertices.begin());
 
-
-
-            float min_x = FLT_MAX;
-            float min_y = FLT_MAX;
-            for (sf::Vector2u& vert : unsortedVertices) {
-                if (vert.y < min_y) {
-                    min_y = vert.y;
-                }
-                if (vert.x < min_x) {
-                    min_x = vert.x;
-                }
-            }
-
             while (true) {
                 if (unsortedVertices.size() == 0) {
                     break;
