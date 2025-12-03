@@ -36,7 +36,7 @@ public:
         FillProvinces(worldMap);
         GetVertices(worldMap);
         SortVertices();
-        RemoveInlineVertices(window);
+        RemoveInlineVertices();
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -185,6 +185,25 @@ public:
                 }
             }
         }
+
+        // Remove Duplicate Vertices
+        for (Province& province : provinces) {
+            std::vector<sf::Vector2u> prunedVertices;
+            for (sf::Vector2u vertex : province.vertices) {
+                bool isDuplicate = false;
+                for (sf::Vector2u otherVertex : prunedVertices) {
+                    if (vertex.x == otherVertex.x) {
+                        if (vertex.y == otherVertex.y) {
+                            isDuplicate = true;
+                        }
+                    }
+                }
+                if (!isDuplicate) {
+                    prunedVertices.push_back(vertex);
+                }
+            }
+            province.vertices = prunedVertices;
+        }
     }
 
     static void SortVertices() {
@@ -226,7 +245,7 @@ public:
         }
     }
 
-    static void RemoveInlineVertices(sf::RenderWindow& window) {
+    static void RemoveInlineVertices() {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
         
@@ -255,59 +274,6 @@ public:
                 }
             }
 
-            // Debug Visual
-            sf::Clock deltaClock;
-            while (true) {
-                HandleEvents(window);
-                ImGui::SFML::Update(window, deltaClock.restart());
-                window.clear(sf::Color(20, 20, 40));
-                float min_x = FLT_MAX;
-                float min_y = FLT_MAX;
-                for (sf::Vector2u& vert : province.vertices) {
-                    if (vert.y < min_y) {
-                        min_y = vert.y;
-                    }
-                    if (vert.x < min_x) {
-                        min_x = vert.x;
-                    }
-                }
-                std::vector<sf::Vertex> debugVertices;
-                std::vector<sf::Vertex> debugPrunedVertices;
-                for (sf::Vector2u vec2u : province.vertices) {
-                    sf::Vertex vert;
-                    vert.position.x = (float)vec2u.x;
-                    vert.position.y = (float)vec2u.y;
-                    vert.position.x -= min_x;
-                    vert.position.y -= min_y;
-                    vert.position.x += 1.5f;
-                    vert.position.y += 1.5f;
-                    vert.position *= 25.0f;
-                    vert.color = sf::Color(255, 120, 120);
-                    debugVertices.push_back(vert);
-                }
-                for (sf::Vector2u vec2u : prunedVertices) {
-                    sf::Vertex vert;
-                    vert.position.x = (float)vec2u.x;
-                    vert.position.y = (float)vec2u.y;
-                    vert.position.x -= min_x;
-                    vert.position.y -= min_y;
-                    vert.position.x += 1.5f;
-                    vert.position.y += 1.5f;
-                    vert.position *= 25.0f;
-                    vert.color = sf::Color(120, 255, 120);
-                    debugPrunedVertices.push_back(vert);
-                }
-                window.draw(&debugVertices[0], debugVertices.size(), sf::PrimitiveType::Points);
-                window.draw(&debugPrunedVertices[0], debugPrunedVertices.size(), sf::PrimitiveType::Points);
-                ImGui::Begin("Debugger");
-                if (ImGui::Button("Next")) {
-                    break;
-                }
-                ImGui::End();
-                ImGui::SFML::Render(window);
-                window.display();
-            }
-
             province.vertices = prunedVertices;
         }
     }
@@ -319,6 +285,7 @@ public:
 private:
     struct Province {
         sf::Color color;
+        sf::Vector2f centerMass;
         std::vector<int> neighbourIndecies;
         std::vector<sf::Vector2u> pixels;
         std::vector<sf::Vector2u> vertices;
@@ -327,6 +294,7 @@ private:
     struct State {
         std::vector<Province> provinces;
     };
+
     static State& GetState() {
         static State state;
         return state;
