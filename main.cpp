@@ -32,10 +32,11 @@ void HandleEvents(sf::RenderWindow& window) {
 
 class ProvinceGeometryBuilder {
 public:
-    static void BuildGeometry(sf::Image& worldMap) {
+    static void BuildGeometry(sf::Image& worldMap, sf::RenderWindow& window) {
         FillProvinces(worldMap);
         GetVertices(worldMap);
         SortVertices();
+        RemoveInlineVertices(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -225,25 +226,95 @@ public:
         }
     }
 
-    static void DebugVisualize(sf::RenderWindow& window, sf::Image& worldMap) {
+    static void RemoveInlineVertices(sf::RenderWindow& window) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
         
-        static int index = 0;
-        if (index >= provinces.size()) {
-            index = 0;
-        }
+        for (Province& province : provinces) {
+            std::vector<sf::Vector2u> prunedVertices;
+            for (int i = 0; i < province.vertices.size(); i++) {
+                
+                int currIndex = i;
+                int prevIndex = i - 1;
+                int nextIndex = i + 1;
+                if (i == 0)
+                    prevIndex = province.vertices.size() - 1;
+                if (i == province.vertices.size() - 1)
+                    nextIndex = 0;
 
-        Province& province = provinces[index++];
-        for (sf::Vector2u pixel : province.pixels) {
-            worldMap.setPixel(pixel, sf::Color(255, 0, 0));
-        }
+                sf::Vector2u curr = province.vertices[i];
+                sf::Vector2u prev = province.vertices[prevIndex];
+                sf::Vector2u next = province.vertices[nextIndex];
+                sf::Vector2f A = sf::Vector2f((float)next.x - (float)curr.x, (float)next.y - (float)curr.y);
+                sf::Vector2f B = sf::Vector2f((float)prev.x - (float)curr.x, (float)prev.y - (float)curr.y);
+                A = A.normalized();
+                B = B.normalized();
+                float dotProd = (A.x * B.x) + (A.y * B.y);
+                if (dotProd > -0.8f) {
+                    prunedVertices.push_back(curr);
+                }
+            }
 
-        sf::Texture texture = sf::Texture(worldMap);
-        sf::Sprite sprite = sf::Sprite(texture);
-        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        window.draw(sprite);
+            // Debug Visual
+            sf::Clock deltaClock;
+            while (true) {
+                HandleEvents(window);
+                ImGui::SFML::Update(window, deltaClock.restart());
+                window.clear(sf::Color(20, 20, 40));
+                float min_x = FLT_MAX;
+                float min_y = FLT_MAX;
+                for (sf::Vector2u& vert : province.vertices) {
+                    if (vert.y < min_y) {
+                        min_y = vert.y;
+                    }
+                    if (vert.x < min_x) {
+                        min_x = vert.x;
+                    }
+                }
+                std::vector<sf::Vertex> debugVertices;
+                std::vector<sf::Vertex> debugPrunedVertices;
+                for (sf::Vector2u vec2u : province.vertices) {
+                    sf::Vertex vert;
+                    vert.position.x = (float)vec2u.x;
+                    vert.position.y = (float)vec2u.y;
+                    vert.position.x -= min_x;
+                    vert.position.y -= min_y;
+                    vert.position.x += 1.5f;
+                    vert.position.y += 1.5f;
+                    vert.position *= 25.0f;
+                    vert.color = sf::Color(255, 120, 120);
+                    debugVertices.push_back(vert);
+                }
+                for (sf::Vector2u vec2u : prunedVertices) {
+                    sf::Vertex vert;
+                    vert.position.x = (float)vec2u.x;
+                    vert.position.y = (float)vec2u.y;
+                    vert.position.x -= min_x;
+                    vert.position.y -= min_y;
+                    vert.position.x += 1.5f;
+                    vert.position.y += 1.5f;
+                    vert.position *= 25.0f;
+                    vert.color = sf::Color(120, 255, 120);
+                    debugPrunedVertices.push_back(vert);
+                }
+                window.draw(&debugVertices[0], debugVertices.size(), sf::PrimitiveType::Points);
+                window.draw(&debugPrunedVertices[0], debugPrunedVertices.size(), sf::PrimitiveType::Points);
+                ImGui::Begin("Debugger");
+                if (ImGui::Button("Next")) {
+                    break;
+                }
+                ImGui::End();
+                ImGui::SFML::Render(window);
+                window.display();
+            }
+
+            province.vertices = prunedVertices;
+        }
     }
+
+    // todo: get center of mass
+    // todo: get neighbours
+    // todo: is shoreline?
 
 private:
     struct Province {
@@ -277,7 +348,7 @@ int main() {
     sf::Image worldMap;
     ProceduralMap::GenerateWorldMap(worldMap, 800, 2);
     ProvinceCracker::BuildProvinces(worldMap);
-    ProvinceGeometryBuilder::BuildGeometry(worldMap);
+    ProvinceGeometryBuilder::BuildGeometry(worldMap, window);
 
     while (window.isOpen()) {
         HandleEvents(window);
@@ -285,10 +356,10 @@ int main() {
         ImGui::SFML::Update(window, deltaClock.restart());
         window.clear(sf::Color(20, 20, 40));
 
-        sf::Texture texture = sf::Texture(worldMap);
-        sf::Sprite sprite = sf::Sprite(texture);
-        sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-        window.draw(sprite);
+        //sf::Texture texture = sf::Texture(worldMap);
+        //sf::Sprite sprite = sf::Sprite(texture);
+        //sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
+        //window.draw(sprite);
 
         ImGui::Begin("Debugger");
         if (ImGui::Button("Save World Map")) {
