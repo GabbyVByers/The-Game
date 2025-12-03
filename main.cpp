@@ -40,6 +40,7 @@ public:
         FindCenterOfMass();
         FindFriends(worldMap);
         FindCoastalProvinces(worldMap, window);
+        GetRealBorderVertices(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -362,41 +363,72 @@ public:
         doubleContinue:
             continue;
         }
-
-        // Debug Visual
-        sf::Clock deltaClock;
-        while (true) {
-            HandleEvents(window);
-            ImGui::SFML::Update(window, deltaClock.restart());
-            window.clear(sf::Color(20, 20, 40));
-
-            sf::Image debugImage = worldMap;
-            for (Province& province : provinces) {
-                for (sf::Vector2u pixel : province.pixels) {
-                    if (province.isCoastal) {
-                        debugImage.setPixel(pixel, sf::Color(255, 0, 0));
-                    }
-                    else {
-                        debugImage.setPixel(pixel, sf::Color(255, 255, 255));
-                    }
-                }
-            }
-            sf::Texture texture = sf::Texture(debugImage);
-            sf::Sprite sprite = sf::Sprite(texture);
-            sprite.setPosition(sf::Vector2f(100.0f, 100.0f));
-            window.draw(sprite);
-
-            ImGui::Begin("Debugger");
-            if (ImGui::Button("Next")) {
-                break;
-            }
-            ImGui::End();
-            ImGui::SFML::Render(window);
-            window.display();
-        }
     }
 
-    // todo: is shoreline?
+    static void GetRealBorderVertices(sf::RenderWindow& window) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+
+        for (Province& province : provinces) {
+            for (int i = 0; i < province.vertices.size(); i++) {
+                int currIndex = i;
+                int nextIndex = i + 1;
+                if (i = province.vertices.size() - 1) {
+                    nextIndex = 0;
+                }
+                sf::Vector2u intVert_A = province.vertices[currIndex];
+                sf::Vector2u intVert_B = province.vertices[nextIndex];
+                sf::Vertex A; A.position = sf::Vector2f((float)intVert_A.x, (float)intVert_A.y);
+                sf::Vertex B; B.position = sf::Vector2f((float)intVert_B.x, (float)intVert_B.y);
+                A.color = province.color;
+                B.color = province.color;
+                province.borderVertices.push_back(A);
+                province.borderVertices.push_back(B);
+            }
+
+            // Debug Visual
+            sf::Clock deltaClock;
+            while (true) {
+                HandleEvents(window);
+                ImGui::SFML::Update(window, deltaClock.restart());
+                window.clear(sf::Color(20, 20, 40));
+
+
+                std::vector<sf::Vertex> borderVerts = province.borderVertices;
+                float min_x = FLT_MAX;
+                float min_y = FLT_MAX;
+                for (sf::Vertex& vert : borderVerts) {
+                    if (vert.position.x < min_x) {
+                        min_x = vert.position.x;
+                    }
+                    if (vert.position.y < min_y) {
+                        min_y = vert.position.y;
+                    }
+                }
+                //for (sf::Vertex& vert : borderVerts) {
+                //    vert.position.x -= min_x;
+                //    vert.position.y -= min_y;
+                //}
+                //for (sf::Vertex vert : borderVerts) {
+                //    vert.position *= 20.0f;
+                //}
+
+                window.draw(&borderVerts[0], borderVerts.size(), sf::PrimitiveType::Lines);
+
+                ImGui::Begin("Debugger");
+                ImGui::Text("min_x: %f", min_x);
+                ImGui::Text("min_y: %f", min_y);
+                ImGui::Text("x: %f", borderVerts[0].position.x);
+                ImGui::Text("y: %f", borderVerts[0].position.y);
+                if (ImGui::Button("Next")) {
+                    break;
+                }
+                ImGui::End();
+                ImGui::SFML::Render(window);
+                window.display();
+            }
+        }
+    }
 
 private:
     struct Province {
@@ -406,6 +438,8 @@ private:
         std::vector<int> neighbourIndecies;
         std::vector<sf::Vector2u> pixels;
         std::vector<sf::Vector2u> vertices;
+        std::vector<sf::Vertex> borderVertices;
+        std::vector<sf::Vertex> triangleVertices;
     };
 
     struct State {
