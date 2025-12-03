@@ -131,6 +131,8 @@ public:
                 }
             }
         }
+
+        // New Corner
     }
 
     static void SortVertices(sf::RenderWindow& window) {
@@ -160,7 +162,8 @@ public:
                 int indexClosestVertex = 0;
                 for (int i = 0; i < unsortedVertices.size(); i++) {
                     sf::Vector2u otherVertex = unsortedVertices[i];
-                    float distance = sqrt(pow((float)(currentVertex.x - otherVertex.x), 2.0f) + pow((float)(currentVertex.y - otherVertex.y), 2.0f));
+                    float distance = (((float)currentVertex.x - (float)otherVertex.x) * ((float)currentVertex.x - (float)otherVertex.x)) +
+                                     (((float)currentVertex.y - (float)otherVertex.y) * ((float)currentVertex.y - (float)otherVertex.y));
                     if (distance < closestDistance) {
                         closestDistance = distance;
                         indexClosestVertex = i;
