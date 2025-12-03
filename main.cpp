@@ -37,6 +37,7 @@ public:
         GetVertices(worldMap);
         SortVertices();
         RemoveInlineVertices();
+        FindCenterOfMass(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -275,6 +276,72 @@ public:
             }
 
             province.vertices = prunedVertices;
+        }
+    }
+
+    static void FindCenterOfMass(sf::RenderWindow& window) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
+
+        for (Province& province : provinces) {
+            float x_sum = 0.0f;
+            float y_sum = 0.0f;
+            int count = 0;
+            for (sf::Vector2u pixel : province.pixels) {
+                x_sum += (float)pixel.x * 2;
+                y_sum += (float)pixel.y * 2;
+                count++;
+            }
+            sf::Vector2f centerMass = sf::Vector2f(x_sum / count, y_sum / count);
+            province.centerMass = centerMass;
+
+            // Debug Visual
+            sf::Clock deltaClock;
+            while (true){
+                HandleEvents(window);
+                ImGui::SFML::Update(window, deltaClock.restart());
+                window.clear(sf::Color(20, 20, 40));
+
+                unsigned int min_x = UINT_MAX;
+                unsigned int min_y = UINT_MAX;
+                for (sf::Vector2u vec : province.vertices) {
+                    if (vec.x < min_x) {
+                        min_x = vec.x;
+                    }
+                    if (vec.y < min_y) {
+                        min_y = vec.y;
+                    }
+                }
+
+                std::vector<sf::Vertex> debugOutline;
+                for (sf::Vector2u vec : province.vertices) {
+                    sf::Vertex vert;
+                    vert.position.x = vec.x - min_x + 2;
+                    vert.position.y = vec.y - min_y + 2;
+                    vert.position *= 25.0f;
+                    debugOutline.push_back(vert);
+                }
+
+                sf::CircleShape center;
+                sf::Vector2f centerPosition;
+                centerPosition.x = province.centerMass.x - min_x + 2;
+                centerPosition.y = province.centerMass.y - min_y + 2;
+                centerPosition *= 25.0f;
+                center.setRadius(2.0f);
+                center.setFillColor(sf::Color(255, 255, 255));
+                center.setPosition(centerPosition);
+
+                window.draw(center);
+                window.draw(&debugOutline[0], debugOutline.size(), sf::PrimitiveType::LineStrip);
+
+                ImGui::Begin("Debugger");
+                if (ImGui::Button("Next")) {
+                    break;
+                }
+                ImGui::End();
+                ImGui::SFML::Render(window);
+                window.display();
+            }
         }
     }
 
