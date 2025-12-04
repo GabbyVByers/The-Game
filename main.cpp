@@ -439,6 +439,7 @@ public:
                     }
                 }
                 std::vector<sf::CircleShape> circles;
+                std::vector<sf::Vector2f> W_values;
                 // ^^^^^ Debug Visual ^^^^^
 
                 bool pointInsideTriangleTestPassed = true;
@@ -455,11 +456,11 @@ public:
                 sf::Vector3f AxB = A.cross(B);
                 float AdotB = A.dot(B);
 
-                if (AxB.z <= 0.0f) {
+                if (AxB.z <= 0.0001f) {
                     convexVertexTestPassed = false;
                 }
 
-                if (AdotB < -0.99) {
+                if (AdotB < -0.9999) {
                     convexVertexTestPassed = false;
                 }
 
@@ -476,33 +477,46 @@ public:
                     sf::Vector2f B = currVert.position;
                     sf::Vector2f C = nextVert.position;
 
-                    float W1 = ((A.x * (C.y - A.y)) + ((P.y - A.y) * (C.x - A.x)) - (P.x * (C.y - A.y))) /
-                        (((B.y - A.y) * (C.x - A.x)) - ((B.x - A.x) * (C.y - A.y)));
-                    float W2 = (P.y - A.y - (W1 * (B.y - A.y))) /
-                        (C.y - A.y);
+                    for (int i = 0; i < 3; i++) {
+                        float W1 = ((A.x * (C.y - A.y)) + ((P.y - A.y) * (C.x - A.x)) - (P.x * (C.y - A.y))) /
+                            (((B.y - A.y) * (C.x - A.x)) - ((B.x - A.x) * (C.y - A.y)));
+                        float W2 = (P.y - A.y - (W1 * (B.y - A.y))) /
+                            (C.y - A.y);
 
-                    if (W1 > -0.0001f) {
-                        if (W2 > 0.0001f) {
-                            if ((W1 + W2) < 1.0001f) {
-                                pointInsideTriangleTestPassed = false;
-                                // vvvvv Debug Visual vvvvv
-                                sf::CircleShape circle;
-                                circle.setRadius(2.5f);
-                                sf::Vector2f circlePos;
-                                circlePos = P;
-                                circle.setFillColor(sf::Color(255, 100, 100));
-                                circlePos.x -= min_x;
-                                circlePos.y -= min_y;
-                                circlePos.x += 2.0f;
-                                circlePos.y += 2.0f;
-                                circlePos *= 25.0f;
-                                circlePos.x -= 2.5f;
-                                circlePos.y -= 2.5f;
-                                circle.setPosition(circlePos);
-                                circles.push_back(circle);
-                                // ^^^^^ Debug Visual ^^^^^
+                        // vvvvv Debug Visual vvvvv
+                        W_values.push_back(sf::Vector2f(W1, W2));
+                        // ^^^^^ Debug Visual ^^^^^
+
+                        if (W1 > -0.0001f) {
+                            if (W2 > 0.0001f) {
+                                if ((W1 + W2) < 1.0001f) {
+                                    pointInsideTriangleTestPassed = false;
+                                    // vvvvv Debug Visual vvvvv
+                                    sf::CircleShape circle;
+                                    circle.setRadius(2.5f);
+                                    sf::Vector2f circlePos;
+                                    circlePos = P;
+                                    circle.setFillColor(sf::Color(255, 100, 100));
+                                    circlePos.x -= min_x;
+                                    circlePos.y -= min_y;
+                                    circlePos.x += 2.0f;
+                                    circlePos.y += 2.0f;
+                                    circlePos *= 25.0f;
+                                    circlePos.x -= 2.5f;
+                                    circlePos.y -= 2.5f;
+                                    circle.setPosition(circlePos);
+                                    circles.push_back(circle);
+                                    // ^^^^^ Debug Visual ^^^^^
+                                }
                             }
                         }
+
+                        sf::Vector2f tempA = A;
+                        sf::Vector2f tempB = B;
+                        sf::Vector2f tempC = C;
+                        A = tempC;
+                        B = tempA;
+                        C = tempB;
                     }
                 }
 
@@ -574,6 +588,11 @@ public:
                     ImGui::Text("Convex Vertex Test: ");
                     ImGui::SameLine();
                     ImGui::Text((convexVertexTestPassed) ? "Passed" : "Failed");
+                    ImGui::Text(" ");
+                    ImGui::Text("Every Pair of Point-Triangle 'W1/W2' Values:");
+                    for (sf::Vector2f Wvals : W_values) {
+                        ImGui::Text("W1: %f W2: %f", Wvals.x, Wvals.y);
+                    }
                     ImGui::End();
                     ImGui::SFML::Render(window);
                     window.display();
