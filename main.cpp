@@ -39,8 +39,9 @@ public:
         RemoveInlineVertices();
         FindCenterOfMass();
         FindFriends(worldMap);
-        FindCoastalProvinces(worldMap, window);
-        GetBorderVertices(window);
+        FindCoastalProvinces(worldMap);
+        GetBorderVertices();
+        ClipEars(window);
     }
 
     static void FillProvinces(sf::Image& worldMap) {
@@ -337,7 +338,7 @@ public:
         }
     }
 
-    static void FindCoastalProvinces(sf::Image& worldMap, sf::RenderWindow& window) {
+    static void FindCoastalProvinces(sf::Image& worldMap) {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -365,7 +366,7 @@ public:
         }
     }
 
-    static void GetBorderVertices(sf::RenderWindow& window) {
+    static void GetBorderVertices() {
         State& s = GetState();
         std::vector<Province>& provinces = s.provinces;
 
@@ -386,45 +387,222 @@ public:
                 borderVertices.push_back(vertex_B);
             }
             province.borderVertices = borderVertices;
+        }
+    }
 
-            // Debug Visual
+    static void ClipEars(sf::RenderWindow& window) {
+        State& s = GetState();
+        std::vector<Province>& provinces = s.provinces;
 
-            float min_x = FLT_MAX;
-            float min_y = FLT_MAX;
-            for (const sf::Vertex& vertex : borderVertices) {
-                if (vertex.position.x < min_x) {
-                    min_x = vertex.position.x;
-                }
-                if (vertex.position.y < min_y) {
-                    min_y = vertex.position.y;
-                }
+        for (Province& province : provinces) {
+            std::vector<sf::Vertex> polygonVertices;
+            for (sf::Vector2u& vec : province.vertices) {
+                sf::Vertex vertex;
+                vertex.position.x = (float)vec.x;
+                vertex.position.y = (float)vec.y;
+                polygonVertices.push_back(vertex);
             }
 
-            for (sf::Vertex& vertex : borderVertices) {
-                vertex.position.x -= min_x;
-                vertex.position.y -= min_y;
-                vertex.position.x += 2.0f;
-                vertex.position.y += 2.0f;
-            }
-            for (sf::Vertex& vertex : borderVertices) {
-                vertex.position *= 25.0f;
-            }
+            std::vector<sf::Vertex> triangleVertices;
+            int currIndex = 0;
 
-            sf::Clock deltaClock;
             while (true) {
-                HandleEvents(window);
-                ImGui::SFML::Update(window, deltaClock.restart());
-                window.clear(sf::Color(20, 20, 40));
+                int prevIndex = currIndex - 1;
+                int nextIndex = currIndex + 1;
+                if (prevIndex == -1) {
+                    prevIndex = polygonVertices.size() - 1;
+                }
+                if (nextIndex == polygonVertices.size()) {
+                    nextIndex = 0;
+                }
 
-                window.draw(&borderVertices[0], borderVertices.size(), sf::PrimitiveType::Lines);
+                // vvvvv Debug Visual vvvvv
+                sf::Clock deltaClock;
+                std::vector<sf::Vertex> debugPolygonVertices = polygonVertices;
+                std::vector<sf::Vertex> debugTriangleVertices = triangleVertices;
+                float min_x = FLT_MAX;
+                float min_y = FLT_MAX;
+                for (sf::Vertex& vertex : debugPolygonVertices) {
+                    if (vertex.position.x < min_x) {
+                        min_x = vertex.position.x;
+                    }
+                    if (vertex.position.y < min_y) {
+                        min_y = vertex.position.y;
+                    }
+                }
+                for (sf::Vertex& vertex : debugTriangleVertices) {
+                    if (vertex.position.x < min_x) {
+                        min_x = vertex.position.x;
+                    }
+                    if (vertex.position.y < min_y) {
+                        min_y = vertex.position.y;
+                    }
+                }
+                std::vector<sf::CircleShape> circles;
+                // ^^^^^ Debug Visual ^^^^^
 
-                ImGui::Begin("Debugger");
-                if (ImGui::Button("Next")) {
+                bool pointInsideTriangleTestPassed = true;
+                bool convexVertexTestPassed = true;
+
+                const sf::Vertex& prevVert = polygonVertices[prevIndex];
+                const sf::Vertex& currVert = polygonVertices[currIndex];
+                const sf::Vertex& nextVert = polygonVertices[nextIndex];
+
+                sf::Vector3f A = sf::Vector3f(prevVert.position.x - currVert.position.x, prevVert.position.y - currVert.position.y, 0.0f);
+                sf::Vector3f B = sf::Vector3f(nextVert.position.x - currVert.position.x, nextVert.position.y - currVert.position.y, 0.0f);
+                A = A.normalized();
+                B = B.normalized();
+                sf::Vector3f AxB = A.cross(B);
+                float AdotB = A.dot(B);
+
+                if (AxB.z <= 0.0f) {
+                    convexVertexTestPassed = false;
+                }
+
+                if (AdotB < -0.99) {
+                    convexVertexTestPassed = false;
+                }
+
+                for (int i = 0; i < polygonVertices.size(); i++) {
+                    if (i == prevIndex)
+                        continue;
+                    if (i == currIndex)
+                        continue;
+                    if (i == nextIndex)
+                        continue;
+                    sf::Vertex vertex = polygonVertices[i];
+                    sf::Vector2f P = vertex.position;
+                    sf::Vector2f A = prevVert.position;
+                    sf::Vector2f B = currVert.position;
+                    sf::Vector2f C = nextVert.position;
+
+                    float W1 = ((A.x * (C.y - A.y)) + ((P.y - A.y) * (C.x - A.x)) - (P.x * (C.y - A.y))) /
+                        (((B.y - A.y) * (C.x - A.x)) - ((B.x - A.x) * (C.y - A.y)));
+                    float W2 = (P.y - A.y - (W1 * (B.y - A.y))) /
+                        (C.y - A.y);
+
+                    if (W1 > -0.0001f) {
+                        if (W2 > 0.0001f) {
+                            if ((W1 + W2) < 1.0001f) {
+                                pointInsideTriangleTestPassed = false;
+                                // vvvvv Debug Visual vvvvv
+                                sf::CircleShape circle;
+                                circle.setRadius(2.5f);
+                                sf::Vector2f circlePos;
+                                circlePos = P;
+                                circle.setFillColor(sf::Color(255, 100, 100));
+                                circlePos.x -= min_x;
+                                circlePos.y -= min_y;
+                                circlePos.x += 2.0f;
+                                circlePos.y += 2.0f;
+                                circlePos *= 25.0f;
+                                circlePos.x -= 2.5f;
+                                circlePos.y -= 2.5f;
+                                circle.setPosition(circlePos);
+                                circles.push_back(circle);
+                                // ^^^^^ Debug Visual ^^^^^
+                            }
+                        }
+                    }
+                }
+
+                // vvvvv Debug Visual vvvvv
+                for (sf::Vertex& vertex : debugPolygonVertices) {
+                    vertex.position.x -= min_x;
+                    vertex.position.y -= min_y;
+                    vertex.position.x += 2.0f;
+                    vertex.position.y += 2.0f;
+                }
+                for (sf::Vertex& vertex : debugTriangleVertices) {
+                    vertex.position.x -= min_x;
+                    vertex.position.y -= min_y;
+                    vertex.position.x += 2.0f;
+                    vertex.position.y += 2.0f;
+                }
+                for (sf::Vertex& vertex : debugPolygonVertices) {
+                    vertex.position *= 25.0f;
+                    vertex.color = sf::Color(255, 255, 255);
+                }
+                for (sf::Vertex& vertex : debugTriangleVertices) {
+                    vertex.position *= 25.0f;
+                    vertex.color = sf::Color(50, 50, 50);
+                }
+                for (int i = 0; i < 3; i++) {
+                    sf::CircleShape circle;
+                    circle.setRadius(2.5f);
+                    sf::Vector2f circlePos;
+                    if (i == 0) {
+                        circlePos = polygonVertices[prevIndex].position;
+                        circle.setFillColor(sf::Color(100, 100, 255));
+                    }
+                    if (i == 1) {
+                        circlePos = polygonVertices[currIndex].position;
+                        circle.setFillColor(sf::Color(100, 255, 100));
+                    }
+                    if (i == 2) {
+                        circlePos = polygonVertices[nextIndex].position;
+                        circle.setFillColor(sf::Color(100, 100, 255));
+                    }
+                    circlePos.x -= min_x;
+                    circlePos.y -= min_y;
+                    circlePos.x += 2.0f;
+                    circlePos.y += 2.0f;
+                    circlePos *= 25.0f;
+                    circlePos.x -= 2.5f;
+                    circlePos.y -= 2.5f;
+                    circle.setPosition(circlePos);
+                    circles.push_back(circle);
+                }
+                while (true) {
+                    HandleEvents(window);
+                    ImGui::SFML::Update(window, deltaClock.restart());
+                    window.clear(sf::Color(20, 20, 40));
+
+                    window.draw(&debugTriangleVertices[0], debugTriangleVertices.size(), sf::PrimitiveType::Triangles);
+                    window.draw(&debugPolygonVertices[0], debugPolygonVertices.size(), sf::PrimitiveType::Points);
+                    for (sf::CircleShape& circle : circles) {
+                        window.draw(circle);
+                    }
+
+                    ImGui::Begin("Debugger");
+                    if (ImGui::Button("Next")) {
+                        break;
+                    }
+                    ImGui::Text("Point Inside Triangle Test: ");
+                    ImGui::SameLine();
+                    ImGui::Text((pointInsideTriangleTestPassed) ? "Passed" : "Failed");
+                    ImGui::Text("Convex Vertex Test: ");
+                    ImGui::SameLine();
+                    ImGui::Text((convexVertexTestPassed) ? "Passed" : "Failed");
+                    ImGui::End();
+                    ImGui::SFML::Render(window);
+                    window.display();
+                }
+                // ^^^^^ Debug Visual ^^^^^
+
+                if (!pointInsideTriangleTestPassed) {
+                    currIndex++;
+                    continue;
+                }
+
+                if (!convexVertexTestPassed) {
+                    currIndex++;
+                    continue;
+                }
+
+                triangleVertices.push_back(prevVert);
+                triangleVertices.push_back(currVert);
+                triangleVertices.push_back(nextVert);
+
+                polygonVertices.erase(polygonVertices.begin() + currIndex);
+                currIndex = 0;
+
+                if (polygonVertices.size() == 3) {
+                    triangleVertices.push_back(polygonVertices[0]);
+                    triangleVertices.push_back(polygonVertices[1]);
+                    triangleVertices.push_back(polygonVertices[2]);
                     break;
                 }
-                ImGui::End();
-                ImGui::SFML::Render(window);
-                window.display();
             }
         }
     }
