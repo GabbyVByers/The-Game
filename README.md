@@ -1,0 +1,3 @@
+testing to see if I can add gifs to a github readme...  
+
+![8a8b2781551437b052d0ce67c355188e](https://github.com/user-attachments/assets/1559acb5-6696-4b4a-851e-0463503dd575)
