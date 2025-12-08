@@ -311,7 +311,7 @@ public:
                 Province& friendProvince = provinces[i];
                 for (sf::Color friendColor : friendColors) {
                     if (friendColor == friendProvince.color) {
-                        province.neighbourIndecies.push_back(i);
+                        province.neighbourIndices.push_back(i);
                         goto doubleContinue;
                     }
                 }
@@ -499,7 +499,7 @@ public:
         bool isCoastal = false;
         sf::Color color;
         sf::Vector2f centerMass;
-        std::vector<int> neighbourIndecies;
+        std::vector<int> neighbourIndices;
         std::vector<sf::Vector2u> pixels;
         std::vector<sf::Vector2u> vertices;
         std::vector<sf::Vertex> borderVertices;

@@ -117,6 +117,8 @@ public:
     }
 
     struct Province {
+        bool isCoastal = false;
+        std::vector<int> neighbourIndices;
         int startIndexBorderVertices;
         int startIndexTriangleVertices;
         int numBorderVertices;
@@ -193,14 +195,6 @@ int main() {
 
         World::Pan(window);
         World::Display(window);
-
-        ImGui::Begin("Debugger");
-        if (ImGui::Button("Save World Map")) {
-            if (worldMap.saveToFile("world_map.png")) {
-                std::cout << "Image Saved Successfully\n";
-            }
-        }
-        ImGui::End();
 
         ImGui::SFML::Render(window);
         window.display();
