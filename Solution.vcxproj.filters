@@ -28,6 +28,9 @@
     <Filter Include="Personal Libraries\ProvinceCracker">
       <UniqueIdentifier>{78135a03-9911-4030-9f27-a16fb5ab6c9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Personal Libraries\ProvinceGeometry">
+      <UniqueIdentifier>{a118f2da-c02e-47c0-8f4b-420b605eaeab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -115,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="ProvinceCracker.h">
       <Filter>Personal Libraries\ProvinceCracker</Filter>
+    </ClInclude>
+    <ClInclude Include="ProvinceGeometry.h">
+      <Filter>Personal Libraries\ProvinceGeometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
