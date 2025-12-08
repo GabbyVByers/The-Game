@@ -31,6 +31,9 @@
     <Filter Include="Personal Libraries\ProvinceGeometry">
       <UniqueIdentifier>{a118f2da-c02e-47c0-8f4b-420b605eaeab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Personal Libraries\Economy">
+      <UniqueIdentifier>{3eaa8af3-1757-4e39-8da3-fdf05b6b977c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -121,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="ProvinceGeometry.h">
       <Filter>Personal Libraries\ProvinceGeometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Economy.h">
+      <Filter>Personal Libraries\Economy</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -27,6 +27,7 @@
     <ClCompile Include="ProvinceCracker_public.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Economy.h" />
     <ClInclude Include="imgui\imconfig-SFML.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui-SFML.h" />
