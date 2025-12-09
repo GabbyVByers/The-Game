@@ -25,6 +25,7 @@
     <ClCompile Include="ProceduralMap_public.cpp" />
     <ClCompile Include="ProvinceCracker_private.cpp" />
     <ClCompile Include="ProvinceCracker_public.cpp" />
+    <ClCompile Include="World_rendering.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Economy.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="ProceduralMap.h" />
     <ClInclude Include="ProvinceCracker.h" />
     <ClInclude Include="ProvinceGeometry.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5F414ED9-F7E2-5603-601B-684BD6E6BA1A}</ProjectGuid>

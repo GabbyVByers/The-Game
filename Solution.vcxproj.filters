@@ -34,6 +34,9 @@
     <Filter Include="Personal Libraries\Economy">
       <UniqueIdentifier>{3eaa8af3-1757-4e39-8da3-fdf05b6b977c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Personal Libraries\World">
+      <UniqueIdentifier>{fdee2a92-112a-4e1c-a00f-00a47b7ce9ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -77,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="ProvinceCracker_private.cpp">
       <Filter>Personal Libraries\ProvinceCracker</Filter>
+    </ClCompile>
+    <ClCompile Include="World_rendering.cpp">
+      <Filter>Personal Libraries\World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="Economy.h">
       <Filter>Personal Libraries\Economy</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Personal Libraries\World</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
