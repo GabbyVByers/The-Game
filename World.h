@@ -38,8 +38,6 @@ public:
         std::vector<Province>& provinces = s.provinces;
         int& indexSelectedProvince = s.indexSelectedProvince;
 
-        std::cout << "here";
-
         sf::Vector2i globalPosition = GetCurrentTranslation();
         sf::Vector2i localMousePosition = mousePosition - globalPosition;
         sf::Vector2u imageIndex;
@@ -52,7 +50,6 @@ public:
         if (imageIndex.y >= imageSize.y) {
             return;
         }
-        std::cout << "inside!\n";
         sf::Color color = worldMap.getPixel(imageIndex);
         for (Province& province : provinces) {
             if (province.keyColor == color) {

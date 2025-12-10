@@ -137,5 +137,8 @@
     <ClInclude Include="World.h">
       <Filter>Personal Libraries\World</Filter>
     </ClInclude>
+    <ClInclude Include="WorldGeneration.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

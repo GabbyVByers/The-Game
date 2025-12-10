@@ -33,7 +33,7 @@ void World::Scrape(sf::Image image) {
     }
 
     sf::Transform& trasformationMatrix = s.trasformationMatrix;
-    //trasformationMatrix.scale(sf::Vector2f(0.65f, 0.65f));
+    trasformationMatrix.scale(sf::Vector2f(0.65f, 0.65f));
 
     for (int i = 0; i < provinces.size(); i++) {
         Province& province = provinces[i];

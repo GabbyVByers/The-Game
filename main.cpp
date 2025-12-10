@@ -19,6 +19,7 @@
 #include "ProvinceCracker.h"
 #include "ProvinceGeometry.h"
 #include "World.h"
+#include "WorldGeneration.h"
 
 void HandleEvents(sf::RenderWindow& window) {
     while (const std::optional event = window.pollEvent()) {
@@ -46,31 +47,7 @@ int main() {
     window.create(sf::VideoMode({ 1920, 1080 }), "Gabby's Risk");
     window.setVerticalSyncEnabled(true);
 
-    if (!ImGui::SFML::Init(window))
-        assert(false && "Bad ImGui Init");
-    ImGui::GetIO().IniFilename = nullptr;
-    ImGui::GetIO().FontGlobalScale = 2.0f;
-    ImPlot::CreateContext();
-    sf::Clock deltaClock;
-
-    sf::Image worldMap;
-    ProceduralMap::GenerateWorldMap(worldMap, 800, 2);
-    ProvinceCracker::BuildProvinces(worldMap);
-    ProvinceGeometry::BuildGeometry(worldMap);
-    World::Scrape(worldMap);
-
-    while (window.isOpen()) {
-        HandleEvents(window);
-
-        ImGui::SFML::Update(window, deltaClock.restart());
-        window.clear(sf::Color::Blue);
-
-        World::Pan(window);
-        World::Display(window);
-
-        ImGui::SFML::Render(window);
-        window.display();
-    }
+    WorldGeneration::WorldEditior(window);
 
     ImPlot::DestroyContext();
     ImGui::SFML::Shutdown();
