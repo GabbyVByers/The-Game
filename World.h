@@ -43,8 +43,8 @@ public:
         sf::Vector2i globalPosition = GetCurrentTranslation();
         sf::Vector2i localMousePosition = mousePosition - globalPosition;
         sf::Vector2u imageIndex;
-        imageIndex.x = localMousePosition.x * GetCurrentScale();
-        imageIndex.y = localMousePosition.y * GetCurrentScale();
+        imageIndex.x = 0.5 * (localMousePosition.x / GetCurrentScale());
+        imageIndex.y = 0.5 * (localMousePosition.y / GetCurrentScale());
         sf::Vector2u imageSize = worldMap.getSize();
         if (imageIndex.x >= imageSize.x) {
             return;
