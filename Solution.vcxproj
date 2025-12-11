@@ -21,11 +21,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PerlinNoise_public.cpp" />
     <ClCompile Include="PerlinNoise_private.cpp" />
-    <ClCompile Include="ProceduralMap_private.cpp" />
-    <ClCompile Include="ProceduralMap_public.cpp" />
-    <ClCompile Include="ProvinceCracker_private.cpp" />
-    <ClCompile Include="ProvinceCracker_public.cpp" />
-    <ClCompile Include="World_rendering.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Economy.h" />
@@ -41,11 +36,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="PerlinNoise.h" />
-    <ClInclude Include="ProceduralMap.h" />
-    <ClInclude Include="ProvinceCracker.h" />
-    <ClInclude Include="ProvinceGeometry.h" />
-    <ClInclude Include="World.h" />
-    <ClInclude Include="WorldGeneration.h" />
+    <ClInclude Include="Game.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5F414ED9-F7E2-5603-601B-684BD6E6BA1A}</ProjectGuid>

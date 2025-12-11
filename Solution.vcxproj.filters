@@ -22,20 +22,11 @@
     <Filter Include="Personal Libraries\PerlinNoise">
       <UniqueIdentifier>{bd97051a-5960-4546-8584-2506b07215cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Personal Libraries\ProceduralMap">
-      <UniqueIdentifier>{a75f2570-8ba6-4bc7-8ee0-46f23088e356}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Personal Libraries\ProvinceCracker">
-      <UniqueIdentifier>{78135a03-9911-4030-9f27-a16fb5ab6c9c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Personal Libraries\ProvinceGeometry">
-      <UniqueIdentifier>{a118f2da-c02e-47c0-8f4b-420b605eaeab}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Personal Libraries\Economy">
       <UniqueIdentifier>{3eaa8af3-1757-4e39-8da3-fdf05b6b977c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Personal Libraries\World">
-      <UniqueIdentifier>{fdee2a92-112a-4e1c-a00f-00a47b7ce9ef}</UniqueIdentifier>
+    <Filter Include="Personal Libraries\Game">
+      <UniqueIdentifier>{3931b55d-f7eb-44b8-8cee-98c7c793791d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -68,21 +59,6 @@
     </ClCompile>
     <ClCompile Include="PerlinNoise_private.cpp">
       <Filter>Personal Libraries\PerlinNoise</Filter>
-    </ClCompile>
-    <ClCompile Include="ProceduralMap_public.cpp">
-      <Filter>Personal Libraries\ProceduralMap</Filter>
-    </ClCompile>
-    <ClCompile Include="ProceduralMap_private.cpp">
-      <Filter>Personal Libraries\ProceduralMap</Filter>
-    </ClCompile>
-    <ClCompile Include="ProvinceCracker_public.cpp">
-      <Filter>Personal Libraries\ProvinceCracker</Filter>
-    </ClCompile>
-    <ClCompile Include="ProvinceCracker_private.cpp">
-      <Filter>Personal Libraries\ProvinceCracker</Filter>
-    </ClCompile>
-    <ClCompile Include="World_rendering.cpp">
-      <Filter>Personal Libraries\World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,23 +98,11 @@
     <ClInclude Include="PerlinNoise.h">
       <Filter>Personal Libraries\PerlinNoise</Filter>
     </ClInclude>
-    <ClInclude Include="ProceduralMap.h">
-      <Filter>Personal Libraries\ProceduralMap</Filter>
-    </ClInclude>
-    <ClInclude Include="ProvinceCracker.h">
-      <Filter>Personal Libraries\ProvinceCracker</Filter>
-    </ClInclude>
-    <ClInclude Include="ProvinceGeometry.h">
-      <Filter>Personal Libraries\ProvinceGeometry</Filter>
-    </ClInclude>
     <ClInclude Include="Economy.h">
       <Filter>Personal Libraries\Economy</Filter>
     </ClInclude>
-    <ClInclude Include="World.h">
-      <Filter>Personal Libraries\World</Filter>
-    </ClInclude>
-    <ClInclude Include="WorldGeneration.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Game.h">
+      <Filter>Personal Libraries\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

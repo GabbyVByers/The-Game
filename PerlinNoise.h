@@ -1,9 +1,17 @@
 
 #pragma once
 
+#include "imgui.h"
+#include "imgui-SFML.h"
+#include "implot.h"
+
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <SFML/Network.hpp>
+
+#include <cassert>
 #include <iostream>
 #include <vector>
 #include <string>
