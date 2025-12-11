@@ -54,6 +54,62 @@ void Game::generateWorld(int mapWidth, unsigned int seed) {
 		}
 	}
 
+	// (3.1) Remove Lakes
+	SystemProvince water_province;
+	water_province.marginPixels.push_back(sf::Vector2u(0, 0));
+	while (water_province.marginPixels.size() > 0) {
+		sf::Vector2u marginPixel = water_province.marginPixels[0];
+		water_province.marginPixels.erase(water_province.marginPixels.begin());
+		worldMap.setPixel(marginPixel, sf::Color(255, 0, 255));
+		std::vector<sf::Vector2i> offsets = {
+			sf::Vector2i( 0,  1),
+			sf::Vector2i( 0, -1),
+			sf::Vector2i( 1,  0),
+			sf::Vector2i(-1,  0)
+		};
+		for (const sf::Vector2i& offset : offsets) {
+			sf::Vector2u offsetPosition;
+			offsetPosition = marginPixel;
+			offsetPosition.x += offset.x;
+			offsetPosition.y += offset.y;
+			if (offsetPosition.x >= mapWidth) {
+				continue;
+			}
+			if (offsetPosition.y >= mapWidth) {
+				continue;
+			}
+			bool validMarginPixel = true;
+			if (worldMap.getPixel(offsetPosition) != sf::Color(0, 0, 255)) {
+				validMarginPixel = false;
+			}
+			for (const sf::Vector2u& marginPixel : water_province.marginPixels) {
+				if (marginPixel == offsetPosition) {
+					validMarginPixel = false;
+					break;
+				}
+			}
+			if (validMarginPixel) {
+				water_province.marginPixels.push_back(offsetPosition);
+			}
+		}
+	}
+	for (int i = 0; i < mapWidth; i++) {
+		for (int j = 0; j < mapWidth; j++) {
+			sf::Color color = worldMap.getPixel(sf::Vector2u(i, j));
+			if (color == sf::Color(0, 0, 255)) {
+				worldMap.setPixel(sf::Vector2u(i, j), sf::Color(0, 255, 0));
+			}
+		}
+	}
+	for (int i = 0; i < mapWidth; i++) {
+		for (int j = 0; j < mapWidth; j++) {
+			sf::Color color = worldMap.getPixel(sf::Vector2u(i, j));
+			if (color == sf::Color(255, 0, 255)) {
+				worldMap.setPixel(sf::Vector2u(i, j), sf::Color(0, 0, 255));
+			}
+		}
+	}
+
 	// (4) Seed Pixel Provinces
 	int density = 100;
 	int stride = mapWidth / density;
