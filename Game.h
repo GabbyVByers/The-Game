@@ -45,7 +45,7 @@ public:
 
 	// World Generation
 	void saveWorldMapImage();
-	void generateWorld(int mapWidth, unsigned int seed);
+	void generateWorld(int mapWidth, int density, unsigned int seed);
 
 	// Rendering
 	float getCurrentScale();

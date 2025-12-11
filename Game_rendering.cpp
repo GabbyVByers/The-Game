@@ -68,8 +68,10 @@ void Game::selectProvince(sf::Vector2i mousePosition) {
 	sf::Vector2i globalPosition = getCurrentTranslation();
 	sf::Vector2i localMousePosition = mousePosition - globalPosition;
 	sf::Vector2u imageIndex;
-	imageIndex.x = 0.5 * (localMousePosition.x / getCurrentScale());
-	imageIndex.y = 0.5 * (localMousePosition.y / getCurrentScale());
+	float x = 0.5 * ((float)localMousePosition.x / getCurrentScale());
+	float y = 0.5 * ((float)localMousePosition.y / getCurrentScale());
+	imageIndex.x = round(x);
+	imageIndex.y = round(y);
 	sf::Vector2u imageSize = worldMap.getSize();
 	if (imageIndex.x >= imageSize.x) {
 		return;

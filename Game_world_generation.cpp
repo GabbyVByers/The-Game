@@ -10,7 +10,7 @@ void Game::saveWorldMapImage() {
 	}
 }
 
-void Game::generateWorld(int mapWidth, unsigned int seed) {
+void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 	// (0) Clear State
 	systemProvinces.clear();
 	renderProvinces.clear();
@@ -111,7 +111,6 @@ void Game::generateWorld(int mapWidth, unsigned int seed) {
 	}
 
 	// (4) Seed Pixel Provinces
-	int density = 100;
 	int stride = mapWidth / density;
 	for (int i = 0; i < density; i++) {
 		for (int j = 0; j < density; j++) {
