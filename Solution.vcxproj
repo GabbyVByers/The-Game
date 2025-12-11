@@ -11,6 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Game_events.cpp" />
+    <ClCompile Include="Game_rendering.cpp" />
+    <ClCompile Include="Game_special_members.cpp" />
+    <ClCompile Include="Game_user_interface.cpp" />
+    <ClCompile Include="Game_world_generation.cpp" />
     <ClCompile Include="imgui\imgui-SFML.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />

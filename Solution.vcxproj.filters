@@ -60,6 +60,21 @@
     <ClCompile Include="PerlinNoise_private.cpp">
       <Filter>Personal Libraries\PerlinNoise</Filter>
     </ClCompile>
+    <ClCompile Include="Game_world_generation.cpp">
+      <Filter>Personal Libraries\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game_special_members.cpp">
+      <Filter>Personal Libraries\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game_rendering.cpp">
+      <Filter>Personal Libraries\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game_events.cpp">
+      <Filter>Personal Libraries\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Game_user_interface.cpp">
+      <Filter>Personal Libraries\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
