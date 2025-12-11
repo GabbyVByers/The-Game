@@ -11,6 +11,13 @@ void Game::saveWorldMapImage() {
 }
 
 void Game::generateWorld(int mapWidth, unsigned int seed) {
+	// (0) Clear State
+	systemProvinces.clear();
+	renderProvinces.clear();
+	provinceBorders.clear();
+	provinceTriangles.clear();
+	trasformationMatrix = sf::Transform();
+
 	// (1) Generate Perlin Noise Float Array
 	PerlinNoise::Initialize(mapWidth, seed);
 	PerlinNoise::AddLayer(05, 0.85f);
