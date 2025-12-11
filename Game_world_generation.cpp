@@ -465,6 +465,15 @@ void Game::generateWorld(int mapWidth, unsigned int seed) {
 		}
 	}
 
+	// (11.1) Eliminate Single Province Islands
+	std::vector<SystemProvince> oldSystemProvinces = systemProvinces;
+	systemProvinces.clear();
+	for (SystemProvince& province : oldSystemProvinces) {
+		if (province.neighbourIndices.size() != 0) {
+			systemProvinces.push_back(province);
+		}
+	}
+
 	// (12) Find Coastal Provinces
 	for (SystemProvince& province : systemProvinces) {
 		for (sf::Vector2u pixel : province.pixels) {

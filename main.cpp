@@ -7,9 +7,8 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     Game game(window);
-    int i = 0;
+    game.generateWorld(800, 20);
     while (window.isOpen()) {
-        game.generateWorld(800, i++);
         game.run(window);
     }
     return 0;
