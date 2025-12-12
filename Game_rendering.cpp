@@ -42,6 +42,15 @@ void Game::run(sf::RenderWindow& window) {
 	pan(window);
 	window.clear(sf::Color::Blue);
 	window.draw(&provinceTriangles[0], provinceTriangles.size(), sf::PrimitiveType::Triangles, trasformationMatrix);
+	if (indexSelectedProvince != -1) {
+		std::vector<sf::Vertex> selectedProvinceTriangles;
+		for (int i = 0; i < renderProvinces[indexSelectedProvince].numTriangleVertices; i++) {
+			sf::Vertex vertex = provinceTriangles[renderProvinces[indexSelectedProvince].startIndexTriangleVertices + i];
+			vertex.color = sf::Color::White;
+			selectedProvinceTriangles.push_back(vertex);
+		}
+		window.draw(&selectedProvinceTriangles[0], selectedProvinceTriangles.size(), sf::PrimitiveType::Triangles, trasformationMatrix);
+	}
 	window.draw(&provinceBorders[0], provinceBorders.size(), sf::PrimitiveType::Lines, trasformationMatrix);
 	gui();
 	ImGui::SFML::Render(window);
@@ -80,15 +89,11 @@ void Game::selectProvince(sf::Vector2i mousePosition) {
 		return;
 	}
 	sf::Color color = worldMap.getPixel(imageIndex);
-	int index = -1;
 	for (RenderProvince& province : renderProvinces) {
 		if (province.color == color) {
-			index = province.index;
+			indexSelectedProvince = province.index;
 			break;
 		}
-	}
-	if (index != -1) {
-		setProvinceFillColor(index, sf::Color::White);
 	}
 }
 

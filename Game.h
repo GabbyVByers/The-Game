@@ -33,6 +33,7 @@ public:
 	std::vector<SystemProvince> systemProvinces;
 
 	// World Rendering
+	int indexSelectedProvince = -1;
 	sf::Clock deltaClock;
 	sf::Transform trasformationMatrix;
 	std::vector<sf::Vertex> provinceBorders;
