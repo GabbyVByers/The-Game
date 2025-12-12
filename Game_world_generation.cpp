@@ -10,26 +10,29 @@ void Game::saveWorldMapImage() {
 	}
 }
 
-void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
+void Game::generateWorld(sf::RenderWindow& window, unsigned int seed) {
+	// (-1) Parameters
+	const int WIDTH = 800;
+	const int DENSITY = 100;
+	
 	// (0) Clear State
 	systemProvinces.clear();
 	renderProvinces.clear();
 	provinceBorders.clear();
 	provinceTriangles.clear();
-	trasformationMatrix = sf::Transform();
 
 	// (1) Generate Perlin Noise Float Array
-	PerlinNoise::Initialize(mapWidth, seed);
+	PerlinNoise::Initialize(WIDTH, seed);
 	PerlinNoise::AddLayer(05, 0.85f);
 	PerlinNoise::AddLayer(20, 0.15f);
 	std::vector<std::vector<float>> perlinNoise = PerlinNoise::Get2DFloatArray();
 
 	// (2) Perlin Noise Float Array + Edge Tapering -> Perlin Noise Image
-	worldMap.resize(sf::Vector2u(mapWidth, mapWidth));
-	for (int i = 0; i < mapWidth; i++) {
-		for (int j = 0; j < mapWidth; j++) {
+	worldMap.resize(sf::Vector2u(WIDTH, WIDTH));
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < WIDTH; j++) {
 			float weight = perlinNoise[i][j];
-			float halfWidth = (float)mapWidth / 2.0f;
+			float halfWidth = (float)WIDTH / 2.0f;
 			float dist = sqrt((((float)i - halfWidth) * ((float)i - halfWidth)) + (((float)j - halfWidth) * ((float)j - halfWidth)));
 			dist = (halfWidth - dist) / halfWidth;
 			dist *= 3.0f;
@@ -42,8 +45,8 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 	}
 
 	// (3) Perlin Noise Image -> Land Water Image (World Map)
-	for (int i = 0; i < mapWidth; i++) {
-		for (int j = 0; j < mapWidth; j++) {
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < WIDTH; j++) {
 			unsigned char depth = worldMap.getPixel(sf::Vector2u(i, j)).r;
 			sf::Color landTypeColor;
 			if (depth < 127)
@@ -72,10 +75,10 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 			offsetPosition = marginPixel;
 			offsetPosition.x += offset.x;
 			offsetPosition.y += offset.y;
-			if (offsetPosition.x >= mapWidth) {
+			if (offsetPosition.x >= WIDTH) {
 				continue;
 			}
-			if (offsetPosition.y >= mapWidth) {
+			if (offsetPosition.y >= WIDTH) {
 				continue;
 			}
 			bool validMarginPixel = true;
@@ -93,16 +96,16 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 			}
 		}
 	}
-	for (int i = 0; i < mapWidth; i++) {
-		for (int j = 0; j < mapWidth; j++) {
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < WIDTH; j++) {
 			sf::Color color = worldMap.getPixel(sf::Vector2u(i, j));
 			if (color == sf::Color(0, 0, 255)) {
 				worldMap.setPixel(sf::Vector2u(i, j), sf::Color(0, 255, 0));
 			}
 		}
 	}
-	for (int i = 0; i < mapWidth; i++) {
-		for (int j = 0; j < mapWidth; j++) {
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < WIDTH; j++) {
 			sf::Color color = worldMap.getPixel(sf::Vector2u(i, j));
 			if (color == sf::Color(255, 0, 255)) {
 				worldMap.setPixel(sf::Vector2u(i, j), sf::Color(0, 0, 255));
@@ -111,10 +114,12 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 	}
 
 	// (4) Seed Pixel Provinces
-	int stride = mapWidth / density;
-	for (int i = 0; i < density; i++) {
-		for (int j = 0; j < density; j++) {
-			sf::Vector2u position = sf::Vector2u(i * stride, j * stride);
+	int stride = WIDTH / DENSITY;
+	for (int i = 0; i < DENSITY; i++) {
+		for (int j = 0; j < (DENSITY * 1.1547); j++) {
+			int x = (j % 2 == 0) ? (i * stride) : (i * stride) + (0.5 * stride);
+			int y = j * stride * cos(0.5236);
+			sf::Vector2u position = sf::Vector2u(x, y);
 			bool isWater = worldMap.getPixel(position) == sf::Color(0, 0, 255);
 			if (isWater) {
 				continue;
@@ -209,8 +214,8 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 	}
 
 	// (6) Provinces Get Pixels
-	for (int i = 0; i < mapWidth; i++) {
-		for (int j = 0; j < mapWidth; j++) {
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < WIDTH; j++) {
 			sf::Vector2u currentPosition = sf::Vector2u(i, j);
 			sf::Color currentColor = worldMap.getPixel(currentPosition);
 			if (currentColor == sf::Color(0, 255, 0))
@@ -654,6 +659,7 @@ void Game::generateWorld(int mapWidth, int density, unsigned int seed) {
 		i++;
 	}
 
+	trasformationMatrix = sf::Transform();
 	trasformationMatrix.scale(sf::Vector2f(0.65f, 0.65f));
 	for (int i = 0; i < renderProvinces.size(); i++) {
 		RenderProvince& render_province = renderProvinces[i];
